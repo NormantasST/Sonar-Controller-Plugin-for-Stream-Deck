@@ -1,0 +1,1 @@
+# streamdeck-steelaseries-plugin
