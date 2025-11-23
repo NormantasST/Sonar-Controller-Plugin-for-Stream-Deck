@@ -1,20 +1,20 @@
 {
 	"Name": "SteelSeriesSonar By NOVIL",
 	"Version": "0.1.0.0",
-	"Author": "NOVIL",
+	"Author": "NOVIL, Normantas Stankevičius",
 	"Actions": [
 		{
-			"Name": "Counter",
+			"Name": "Rotate Output Devices",
 			"UUID": "com.novil.steelseriessonar-by-novil.rotate-output-audio-device",
-			"Icon": "imgs/actions/counter/icon",
-			"Tooltip": "Rotates Selected Output Device.",
+			"Icon": "imgs/actions/rotate-output-devices/icon",
+			"Tooltip": "Rotates Selected Output Device",
 			"PropertyInspectorPath": "ui/rotate-audio-output-device.html",
 			"Controllers": [
 				"Keypad"
 			],
 			"States": [
 				{
-					"Image": "imgs/actions/counter/key",
+					"Image": "imgs/actions/rotate-output-devices/key",
 					"TitleAlignment": "middle"
 				}
 			]
