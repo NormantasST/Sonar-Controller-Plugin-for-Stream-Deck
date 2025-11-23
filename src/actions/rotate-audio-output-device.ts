@@ -1,5 +1,5 @@
 import streamDeck, { action, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/streamdeck";
-import { getAllAudioDevices, getDeviceRedirections, getSonarUrl, setOutputAudioDevice } from "../sonar-helper";
+import { getAllAudioDevices, getAllExcludedAudioDevices as getOnlyNotExcludedDevices, getDeviceRedirections, getSonarUrl, setOutputAudioDevice } from "../sonar-helper";
 const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 
 /**
@@ -54,15 +54,22 @@ export class RotateOutputAudioDevice extends SingletonAction<CounterSettings> {
 		const deviceRedirections = await getDeviceRedirections(sonarUrl);
 		const gameRenderDevice = deviceRedirections.find((x: { id: string; }) => x.id == "game");
 
-		// Gets current selected device.
+		// Exclude Excluded Devices
 		const allDevices = await getAllAudioDevices(sonarUrl);
-		logger.debug(`Current Devices: ${JSON.stringify(allDevices)}`);
-		const currentOutputDeviceIndex = allDevices.findIndex((x: { id: any; }) => x.id == gameRenderDevice.deviceId) ?? 0;
-		const currentOutputDevice = allDevices[currentOutputDeviceIndex];
+		let deviceIds: any[];
+		if (settings.allowExcludedDevices)
+			deviceIds = allDevices
+		else
+			deviceIds = await getOnlyNotExcludedDevices(sonarUrl, "game");
 
+		// Gets current selected device.
+		logger.debug(`Current Devices: ${JSON.stringify(allDevices)}`);
+		const currentOutputDeviceIndex = deviceIds.findIndex((x: { id: any; }) => x.id == gameRenderDevice.deviceId) ?? 0;
+		const nextAudioDeviceIndex = currentOutputDeviceIndex + 1 < deviceIds.length ? currentOutputDeviceIndex + 1 : 0;
+		const nextAudioDeviceId = deviceIds[nextAudioDeviceIndex].id;
+		
 		// Rotate Audio Device
-		const nextAudioDeviceIndex = currentOutputDeviceIndex + 1 < allDevices.length ? currentOutputDeviceIndex + 1 : 0;
-		const nextAudioDevice = allDevices[nextAudioDeviceIndex];
+		const nextAudioDevice = allDevices[allDevices.findIndex((x: { id: any; }) => x.id == nextAudioDeviceId)]
 
 		logger.debug(`Setting Audio Device (${nextAudioDeviceIndex}) to: ${JSON.stringify(nextAudioDevice)}`);
 		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 1);
@@ -84,4 +91,5 @@ export class RotateOutputAudioDevice extends SingletonAction<CounterSettings> {
 type CounterSettings = {
 	deviceName: string;
 	deviceId: string;
+	allowExcludedDevices?: boolean
 };

@@ -55,3 +55,12 @@ export function generateHttpsUnauothorizedAgent(): https.Agent {
 export function generateHttpUnauothorizedAgent(): http.Agent {
     return new http.Agent();
 }
+
+// Gets all excluded devices (list options: chatRenderer, game, chatCapture, media, aux)
+export async function getAllExcludedAudioDevices(sonarApiUrl: string, deviceList: string): Promise<any[]> {
+    const apiResponse = await fetch(`${sonarApiUrl}/FallbackSettings/lists`, { agent: generateHttpUnauothorizedAgent(),});
+
+    const content = await apiResponse.json() as any;
+    return content[deviceList].filter((device: { isActive: string; isExcluded: string; }) =>
+        device.isActive && !device.isExcluded);
+}
