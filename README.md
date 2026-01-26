@@ -16,3 +16,9 @@ This project is free to use for personal and non-commercial use. For commercial 
 ## Special Thanks!
 
 [SteelSeries GG - Sonar API reverse engineering](https://github.com/wex/sonar-rev) by Niko Hujanen for reverse engineering the OpenAPI definition which helped writing the tool.
+
+## Developers
+
+![image](./docs/images/NovilLogo.png)
+
+Normantas Stankevičius - Lead Developer.
