@@ -4,3 +4,4 @@ node_modules/
 # Stream Deck files
 *.sdPlugin/bin
 *.sdPlugin/logs
+com.novil.steelseriessonar-by-novil.streamDeckPlugin

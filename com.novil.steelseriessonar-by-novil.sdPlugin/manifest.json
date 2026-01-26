@@ -25,15 +25,11 @@
 	"CodePath": "bin/plugin.js",
 	"Description": "Allows to control SteelSeries Sonar via Streamdeck.",
 	"Icon": "imgs/plugin/marketplace@2x",
-	"SDKVersion": 2,
+	"SDKVersion": 3,
 	"Software": {
-		"MinimumVersion": "6.5"
+		"MinimumVersion": "6.9"
 	},
 	"OS": [
-		{
-			"Platform": "mac",
-			"MinimumVersion": "12"
-		},
 		{
 			"Platform": "windows",
 			"MinimumVersion": "10"
