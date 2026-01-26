@@ -4,7 +4,7 @@ I created my own Streamdeck plugin to control Steelseries Sonar app. I am in no 
 
 ## Donating / Commercial Use
 
-This project is free to use for personal and non-commercial use. For commercial use or to contribute to the project please donate any amount to my [PayPal](https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6).
+This project is free to use for personal and commercial use. It would be nice to contribute any amount to my [PayPal](https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6) as Software Developers can not live on *free* if you find value from the project :)
 
 ## Features
 

@@ -1,12 +1,12 @@
 {
 	"Name": "SteelSeriesSonar By NOVIL",
-	"Version": "0.1.0.0",
+	"Version": "1.0.0.0",
 	"Author": "NOVIL, Normantas Stankevičius",
 	"Actions": [
 		{
 			"Name": "Rotate Output Devices",
 			"UUID": "com.novil.steelseriessonar-by-novil.rotate-output-audio-device",
-			"Icon": "imgs/actions/rotate-output-devices/icon",
+			"Icon": "imgs/actions/rotate-output-devices/icon@2x",
 			"Tooltip": "Rotates Selected Output Device",
 			"PropertyInspectorPath": "ui/rotate-audio-output-device.html",
 			"Controllers": [
@@ -21,19 +21,15 @@
 		}
 	],
 	"Category": "SteelSeriesSonar By NOVIL",
-	"CategoryIcon": "imgs/plugin/category-icon",
+	"CategoryIcon": "imgs/plugin/category-icon@2x",
 	"CodePath": "bin/plugin.js",
-	"Description": "Allows Managing Steelseries Sonar Settings using Stream Deck",
-	"Icon": "imgs/plugin/marketplace",
-	"SDKVersion": 2,
+	"Description": "Allows to control SteelSeries Sonar via Streamdeck.",
+	"Icon": "imgs/plugin/marketplace@2x",
+	"SDKVersion": 3,
 	"Software": {
-		"MinimumVersion": "6.5"
+		"MinimumVersion": "6.9"
 	},
 	"OS": [
-		{
-			"Platform": "mac",
-			"MinimumVersion": "12"
-		},
 		{
 			"Platform": "windows",
 			"MinimumVersion": "10"
