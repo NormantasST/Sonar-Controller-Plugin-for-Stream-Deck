@@ -1,51 +1,30 @@
-import streamDeck, { action, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/streamdeck";
+import streamDeck, { action, DidReceiveSettingsEvent, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/streamdeck";
 import { getAllAudioDevices, getAllExcludedAudioDevices as getOnlyNotExcludedDevices, getDeviceRedirections, getSonarUrl, setOutputAudioDevice } from "../sonar-helper";
+import { GlobalSettings } from "../models/global-settings-types";
+import { ROTATE_OUTPUT_DEVICES } from "../action-ids";
+import { INotifyableAction } from "../models/interfaces";
+
 const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 
-/**
- * An example action class that displays a count that increments by one each time the button is pressed.
- */
-@action({ UUID: "com.novil.steelseriessonar-by-novil.rotate-output-audio-device" })
-export class RotateOutputAudioDevice extends SingletonAction<CounterSettings> {
-	/**
-	 * The {@link SingletonAction.onWillAppear} event is useful for setting the visual representation of an action when it becomes visible. This could be due to the Stream Deck first
-	 * starting up, or the user navigating between pages / folders etc.. There is also an inverse of this event in the form of {@link streamDeck.client.onWillDisappear}. In this example,
-	 * we're setting the title to the "count" that is incremented in {@link RotateOutputAudioDevice.onKeyDown}.
-	 */
-	override async onWillAppear(ev: WillAppearEvent<CounterSettings>): Promise<void> {
-		const { settings } = ev.payload;
+@action({ UUID: ROTATE_OUTPUT_DEVICES })
+export class RotateOutputAudioDevice extends SingletonAction<RotateOutput> implements INotifyableAction {
+	static async updateActionStateAsync(action: any): Promise<void> {
+		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
-		// Fetch Sonar API Local API.
-		const sonarUrl = await getSonarUrl();
-		
-		// Fetch Current Devices.
-		const deviceRedirections = await getDeviceRedirections(sonarUrl);
-		const gameRenderDevice = deviceRedirections.find((x: { id: string; }) => x.id == "game");
-		logger.debug(`Game Render Device: ${JSON.stringify(gameRenderDevice)}`);
-
-		// Gets current selected device
-		const allDevices = await getAllAudioDevices(sonarUrl);
-		logger.debug(`Current Devices: ${JSON.stringify(allDevices)}`);
-
-		const currentOutputDevice = allDevices.find((x: { id: any; }) => x.id == gameRenderDevice.deviceId);
-		logger.debug(`Current Selected Device: ${JSON.stringify(currentOutputDevice)}`);
-
-		settings.deviceName = currentOutputDevice.friendlyName;
-		settings.deviceId = currentOutputDevice.id;
-
-		await ev.action.setSettings(settings);
-		return ev.action.setTitle(settings.deviceName);
+		await action.setTitle(globalSettings.AllOutput!.deviceName);
 	}
 
-	/**
-	 * Listens for the {@link SingletonAction.onKeyDown} event which is emitted by Stream Deck when an action is pressed. Stream Deck provides various events for tracking interaction
-	 * with devices including key down/up, dial rotations, and device connectivity, etc. When triggered, {@link ev} object contains information about the event including any payloads
-	 * and action information where applicable. In this example, our action will display a counter that increments by one each press. We track the current count on the action's persisted
-	 * settings using `setSettings` and `getSettings`.
-	 */
-	override async onKeyDown(ev: KeyDownEvent<CounterSettings>): Promise<void> {
-		// Update the count from the settings.
+	override async onWillAppear(ev: WillAppearEvent<RotateOutput>): Promise<void> {
 		const { settings } = ev.payload;
+		await ev.action.setSettings(settings);
+
+		await RotateOutputAudioDevice.updateActionStateAsync(ev.action);
+	}
+
+	override async onKeyDown(ev: KeyDownEvent<RotateOutput>): Promise<void> {
+		// Update the count from the settings.
+		const { settings: localSettings } = ev.payload;
+		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		// Fetch Sonar API Local API.
 		const sonarUrl = await getSonarUrl();
@@ -57,13 +36,13 @@ export class RotateOutputAudioDevice extends SingletonAction<CounterSettings> {
 		// Exclude Excluded Devices
 		const allDevices = await getAllAudioDevices(sonarUrl);
 		let deviceIds: any[];
-		if (settings.allowExcludedDevices)
+
+		if (localSettings.allowExcludedDevices)
 			deviceIds = allDevices
 		else
 			deviceIds = await getOnlyNotExcludedDevices(sonarUrl, "game");
 
 		// Gets current selected device.
-		logger.debug(`Current Devices: ${JSON.stringify(allDevices)}`);
 		const currentOutputDeviceIndex = deviceIds.findIndex((x: { id: any; }) => x.id == gameRenderDevice.deviceId) ?? 0;
 		const nextAudioDeviceIndex = currentOutputDeviceIndex + 1 < deviceIds.length ? currentOutputDeviceIndex + 1 : 0;
 		const nextAudioDeviceId = deviceIds[nextAudioDeviceIndex].id;
@@ -71,25 +50,33 @@ export class RotateOutputAudioDevice extends SingletonAction<CounterSettings> {
 		// Rotate Audio Device
 		const nextAudioDevice = allDevices[allDevices.findIndex((x: { id: any; }) => x.id == nextAudioDeviceId)]
 
-		logger.debug(`Setting Audio Device (${nextAudioDeviceIndex}) to: ${JSON.stringify(nextAudioDevice)}`);
 		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 1);
 		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 2);
 		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 7);
 		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 8);
 
-		settings.deviceName = nextAudioDevice.friendlyName;
-		settings.deviceId = nextAudioDevice.id;
+		globalSettings.AllOutput!.deviceName = nextAudioDevice.friendlyName;
+		globalSettings.AllOutput!.deviceId = nextAudioDevice.id;
 
-		await ev.action.setSettings(settings);
-		return ev.action.setTitle(settings.deviceName);
+		await streamDeck.settings.setGlobalSettings(globalSettings);
+		await this.notifyActions(globalSettings);
+	}
+
+	async notifyActions(globalSettings: GlobalSettings): Promise<void> {
+		await streamDeck.settings.setGlobalSettings(globalSettings);
+		streamDeck.actions.forEach(async (action) => {
+			switch (action.manifestId) {
+				case ROTATE_OUTPUT_DEVICES:
+					await RotateOutputAudioDevice.updateActionStateAsync(action);
+					break;
+			}
+		});
 	}
 }
 
 /**
  * Settings for {@link RotateOutputAudioDevice}.
  */
-type CounterSettings = {
-	deviceName: string;
-	deviceId: string;
+type RotateOutput = {
 	allowExcludedDevices?: boolean
 };

@@ -1,0 +1,1 @@
+export const ROTATE_OUTPUT_DEVICES = "com.novil.steelseriessonar-by-novil.rotate-output-audio-device";
