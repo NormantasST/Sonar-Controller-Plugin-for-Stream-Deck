@@ -2,6 +2,9 @@ import streamDeck from '@elgato/streamdeck';
 import https from 'https';
 import http from 'http'
 import fetch from "node-fetch";
+import { GlobalSettings } from './models/global-settings-types';
+import { ROTATE_OUTPUT_DEVICES } from './action-ids';
+import { RotateOutputAudioDevice } from './actions/rotate-audio-output-device';
 
 const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 
@@ -63,4 +66,40 @@ export async function getAllExcludedAudioDevices(sonarApiUrl: string, deviceList
     const content = await apiResponse.json() as any;
     return content[deviceList].filter((device: { isActive: string; isExcluded: string; }) =>
         device.isActive && !device.isExcluded);
+}
+
+export async function getCurrentSonarSettings(): Promise<GlobalSettings>
+{
+    // Fetch Sonar API Local API.
+    const sonarUrl = await getSonarUrl();
+    
+    // Fetch Current Devices.
+    const deviceRedirections = await getDeviceRedirections(sonarUrl);
+    const gameRenderDevice = deviceRedirections.find((x: { id: string; }) => x.id == "game");
+
+    // Gets current selected device
+    const allDevices = await getAllAudioDevices(sonarUrl);
+
+    const currentOutputDevice = allDevices.find((x: { id: any; }) => x.id == gameRenderDevice.deviceId);
+		
+
+    const globalSettings: GlobalSettings = {
+        AllOutput: {
+            deviceId: currentOutputDevice.id,
+            deviceName: currentOutputDevice.friendlyName,
+        }
+    };
+
+    return globalSettings;
+}
+
+export async function notifyAll()
+{
+    streamDeck.actions.forEach(async (action) => {
+        switch (action.manifestId) {
+            case ROTATE_OUTPUT_DEVICES:
+                await RotateOutputAudioDevice.updateActionStateAsync(action);
+                break;
+        }
+    });
 }
