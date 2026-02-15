@@ -5,3 +5,4 @@ node_modules/
 *.sdPlugin/bin
 *.sdPlugin/logs
 com.novil.steelseriessonar-by-novil.streamDeckPlugin
+.vscode/
