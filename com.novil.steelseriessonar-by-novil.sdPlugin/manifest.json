@@ -1,6 +1,6 @@
 {
-	"Name": "SteelSeriesSonar By NOVIL",
-	"Version": "1.0.0.0",
+	"Name": "Sonar Controller",
+	"Version": "1.0.0.2",
 	"Author": "NOVIL, Normantas Stankevičius",
 	"Actions": [
 		{
@@ -20,7 +20,7 @@
 			]
 		}
 	],
-	"Category": "SteelSeriesSonar By NOVIL",
+	"Category": "Sonar Controller",
 	"CategoryIcon": "imgs/plugin/category-icon@2x",
 	"CodePath": "bin/plugin.js",
 	"Description": "Allows to control SteelSeries Sonar via Streamdeck.",

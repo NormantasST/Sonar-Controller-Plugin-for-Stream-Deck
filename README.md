@@ -19,6 +19,7 @@ This project is free to use for personal and commercial use. It would be nice to
 
 ## Developers
 
-![image](./docs/images/NovilLogo.png)
+<img src="./docs/images/NovilLogo.png" alt="Logo" width="500"/>
+
 
 Normantas Stankevičius - Lead Developer.
