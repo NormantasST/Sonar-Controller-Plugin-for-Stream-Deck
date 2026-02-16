@@ -1,8 +1,9 @@
 import streamDeck, { action, DidReceiveSettingsEvent, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/streamdeck";
-import { getAllAudioDevices, getAllExcludedAudioDevices as getOnlyNotExcludedDevices, getDeviceRedirections, getSonarUrl, setOutputAudioDevice } from "../sonar-helper";
-import { GlobalSettings } from "../models/global-settings-types";
-import { ROTATE_OUTPUT_DEVICES } from "../action-ids";
-import { INotifyableAction } from "../models/interfaces";
+import { ROTATE_OUTPUT_DEVICES } from "../constants/action-uuids.constants";
+import { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import { GlobalSettings } from "../models/types/global-settings.type";
+import sonarClient from '.././services/sonar-client';
+import { RedirectionEnum } from "../models/types/sonar-models.type";
 
 const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 
@@ -10,7 +11,6 @@ const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 export class RotateOutputAudioDevice extends SingletonAction<RotateOutput> implements INotifyableAction {
 	static async updateActionStateAsync(action: any): Promise<void> {
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-
 		await action.setTitle(globalSettings.AllOutput!.deviceName);
 	}
 
@@ -22,38 +22,36 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutput> imple
 	}
 
 	override async onKeyDown(ev: KeyDownEvent<RotateOutput>): Promise<void> {
-		// Update the count from the settings.
 		const { settings: localSettings } = ev.payload;
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-
-		// Fetch Sonar API Local API.
-		const sonarUrl = await getSonarUrl();
 		
-		// Fetch Current Devices.
-		const deviceRedirections = await getDeviceRedirections(sonarUrl);
-		const gameRenderDevice = deviceRedirections.find((x: { id: string; }) => x.id == "game");
+		const deviceRedirections = await sonarClient.getDeviceRedirectionsAsync();
+		const gameRenderDevice = deviceRedirections.find((device) => device.id == RedirectionEnum.Game);
 
-		// Exclude Excluded Devices
-		const allDevices = await getAllAudioDevices(sonarUrl);
-		let deviceIds: any[];
+		const allDevices = await sonarClient.getAllAudioDevicesAsync();
 
+		let availableDeviceIds: string[];
 		if (localSettings.allowExcludedDevices)
-			deviceIds = allDevices
+			availableDeviceIds = allDevices.map((device) => device.id);
 		else
-			deviceIds = await getOnlyNotExcludedDevices(sonarUrl, "game");
+		{
+			const excludedGameDevices = await sonarClient.getAllExcludedGameAudioDevicesAsync()
+			availableDeviceIds = excludedGameDevices.map((device) => device.id);
+		}
 
 		// Gets current selected device.
-		const currentOutputDeviceIndex = deviceIds.findIndex((x: { id: any; }) => x.id == gameRenderDevice.deviceId) ?? 0;
-		const nextAudioDeviceIndex = currentOutputDeviceIndex + 1 < deviceIds.length ? currentOutputDeviceIndex + 1 : 0;
-		const nextAudioDeviceId = deviceIds[nextAudioDeviceIndex].id;
+		const currentOutputDeviceIndex = availableDeviceIds.findIndex((id) => id == gameRenderDevice!.deviceId) ?? 0;
+		const nextAudioDeviceIdIndex = currentOutputDeviceIndex + 1 < availableDeviceIds.length ? currentOutputDeviceIndex + 1 : 0;
+		const nextAudioDeviceId = availableDeviceIds[nextAudioDeviceIdIndex];
 		
 		// Rotate Audio Device
-		const nextAudioDevice = allDevices[allDevices.findIndex((x: { id: any; }) => x.id == nextAudioDeviceId)]
+		const nextAudioDeviceIndex = allDevices.findIndex((device) => device.id == nextAudioDeviceId);
+		const nextAudioDevice = allDevices[nextAudioDeviceIndex];
 
-		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 1);
-		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 2);
-		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 7);
-		await setOutputAudioDevice(sonarUrl, nextAudioDevice.id, 8);
+		await sonarClient.putOutputAudioDeviceAsync(nextAudioDevice.id, RedirectionEnum.Game);
+		await sonarClient.putOutputAudioDeviceAsync(nextAudioDevice.id, RedirectionEnum.Chat);
+		await sonarClient.putOutputAudioDeviceAsync(nextAudioDevice.id, RedirectionEnum.Media);
+		await sonarClient.putOutputAudioDeviceAsync(nextAudioDevice.id, RedirectionEnum.Aux);
 
 		globalSettings.AllOutput!.deviceName = nextAudioDevice.friendlyName;
 		globalSettings.AllOutput!.deviceId = nextAudioDevice.id;
