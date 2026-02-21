@@ -19,6 +19,7 @@ This project is free to use for personal and commercial use. It would be nice to
 ### Rotate Audio Output
 
 - **Rotates your current output device**: `All (Auto Detect)` (default), `All (Classic Only)`, `Game`, `Chat`, `Media`, `Aux`, `All (Streaming Only)`, `Personal Mix`, `Stream Mix`.
+- Set Sonar Title Max Length: Allows to control the titles' length which is auto-generated from Sonar. If value is set to 0 it will show the whole title.
 - User can select if they want to include or exclude `Excluded Devices`.
 
 ## Basic Setup
