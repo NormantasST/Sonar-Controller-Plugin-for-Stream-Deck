@@ -166,7 +166,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		if (titleText == undefined)
 			throw logErrorAndThrow(logger, `Related Channel for setting title on ${ROTATE_OUTPUT_DEVICES} is not found!`);
 
-		return wrapText(titleText!);
+		return wrapText(titleText, 9, localSettings.maxTitleLength);
 	}
 
 	static async filterAvailableDevicesAsync(allDevices: AudioDevice[], allowExcludedDevices: boolean): Promise<string[]> {
@@ -202,6 +202,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
  */
 type RotateOutputSettings = {
 	rotationMode: RotationMode,
+	maxTitleLength: number,
 	allowExcludedDevices?: boolean
 };
 
