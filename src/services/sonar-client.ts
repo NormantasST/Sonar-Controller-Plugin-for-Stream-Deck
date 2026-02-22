@@ -2,7 +2,7 @@
 import streamDeck from '@elgato/streamdeck';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
-import fetch from "node-fetch";
+import fetch, { Response } from "node-fetch";
 import { AudioDevice, ClassicRedirection, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamRedirection, StreamRedirectionEnum } from '../models/types/sonar-models.type';
 import { logErrorAndThrow } from '../helpers/streamdeck-logger-helper';
 import { RedirectionEnumMap, StreamRedirectionEnumMap } from '../models/converters/sonar-model-converts';
@@ -63,17 +63,26 @@ class SonarClient {
             body: !!body ? JSON.stringify(body) : undefined
         }
 
-        let response = await fetch(uri, requestBody);
+        let response: Response | undefined;
 
-        // Sonar URL is not static and can change after requests.
-        // We Retry in case of URL has changed or not found.
-        if (response.status === 404) {
-            logger.debug("Sonar Client got 404. Trying to regenerate HTTP URI");
-            this.sonarUrl = await this.fetchSonarUrlAsync();
-            uri = await this.generateHttpRequestUriAsync(route, searchParams);
-
+        try {
             response = await fetch(uri, requestBody);
+        } catch (error: any) {
+            // Sonar URL is not static and can change after requests.
+            // We Retry in case of URL has changed or not found.
+            if (!!error.code && error.code === "ECONNREFUSED") {
+                logger.info("Sonar Client got ECONNREFUSED. Trying to regenerate HTTP URI");
+
+                this.sonarUrl = await this.fetchSonarUrlAsync();
+                uri = await this.generateHttpRequestUriAsync(route, searchParams);
+                response = await fetch(uri, requestBody);
+            }
+
+            logger.info(`Error Body: ${JSON.stringify(error)}`)
         }
+
+        if (response === undefined)
+            throw logErrorAndThrow(logger, `Response is undefined.`);
 
         if (!response.ok)
             throw logErrorAndThrow(logger, `Error doing a Sonar Client Request: StatusCode: ${response.status} Body: ${JSON.stringify(response.body)}`)
