@@ -1,6 +1,5 @@
-
 export type AudioDevice = {
-    id: string;
+    id?: string;
     friendlyName: string;
     dataFlow: DeviceDataFlow;
     role: DeviceRole;

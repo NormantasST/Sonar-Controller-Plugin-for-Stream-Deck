@@ -1,7 +1,3 @@
-import streamDeck from "@elgato/streamdeck";
-import { ROTATE_OUTPUT_DEVICES } from "../constants/action-uuids.constants";
-import { RotateOutputAudioDevice } from "../actions/rotate-audio-output-device";
-
 export function wrapText(text: string, targetLength: number = 9, cutoff = -1): string {
     const words = text.split(" ");
     let output = "";

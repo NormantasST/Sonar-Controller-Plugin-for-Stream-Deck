@@ -1,13 +1,14 @@
 import streamDeck from '@elgato/streamdeck';
 
-import { RotateOutputAudioDevice as RotateOutputAudioDevice } from "./actions/rotate-audio-output-device";
-import { initializeGlobalSettings } from './helpers/initialization-helper';
+import { RotateOutputAudioDevice } from "./actions/rotate-audio-output-device";
+import { initializeGlobalSettingsAsync } from './helpers/initialization-helper';
 
 streamDeck.logger.setLevel("trace");
 
 streamDeck.settings.useExperimentalMessageIdentifiers = true;
-await initializeGlobalSettings();
+await initializeGlobalSettingsAsync();
 
 streamDeck.actions.registerAction(new RotateOutputAudioDevice());
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 streamDeck.connect();

@@ -1,5 +1,5 @@
-import { GlobalSettings } from "../types/global-settings.type";
+import type { GlobalSettings } from "../types/global-settings.type";
 
 export interface INotifyableAction{
-    notifyRelatedActions(globalSettings: GlobalSettings): Promise<void>
+    notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void>
 }
