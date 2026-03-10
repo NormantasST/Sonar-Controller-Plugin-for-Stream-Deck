@@ -3,7 +3,7 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import type { Response } from "node-fetch";
 import fetch from "node-fetch";
-import type { AudioDevice, ClassicRedirection, DeviceRole, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamRedirection, StreamRedirectionEnum } from '../models/types/sonar-models.type';
+import type { AudioDevice, ClassicRedirection, DeviceRole, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamRedirection, StreamRedirectionEnum, VolumeSettings } from '../models/types/sonar-models.type';
 import { logErrorAndThrow } from '../helpers/streamdeck-logger-helper';
 import { ClassicVolumeSettingsEnumMap, RedirectionEnumMap, StreamRedirectionEnumMap } from '../models/converters/sonar-model-converts';
 
@@ -52,6 +52,10 @@ class SonarClient {
 
     public getAllAudioDevicesAsync(): Promise<AudioDevice[]> {
         return this.doHttpRequestAsync<AudioDevice[]>("/AudioDevices", "GET");
+    }
+
+    public getClassicVolumeSettingsAsync(): Promise<VolumeSettings> {
+		return this.doHttpRequestAsync<VolumeSettings>(`/VolumeSettings/classic`, "GET");
     }
 
     public setClassicMasterVolumeAsync(updatedVolume: number): Promise<void> {

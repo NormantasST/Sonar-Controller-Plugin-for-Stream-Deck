@@ -83,17 +83,17 @@ export enum SonarMode {
     Streaming = "stream"
 }
 
-type VolumeSettingsDevice = {
+export type VolumeSettingsDevice = {
   volume: number;
   muted: boolean;
 };
 
-type VolumeSettingsChannel = {
+export type VolumeSettingsChannel = {
   stream: Record<string, VolumeSettingsDevice>;
   classic: VolumeSettingsDevice;
 };
 
-type VolumeSettings = {
+export type VolumeSettings = {
   masters: VolumeSettingsChannel;
   devices: Record<DeviceRole, VolumeSettingsChannel>;
 };
