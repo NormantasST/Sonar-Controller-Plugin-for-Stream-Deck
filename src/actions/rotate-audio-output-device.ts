@@ -67,8 +67,8 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
-	static async initializeActionAsync(action: any) {
-// Auto Initialize Settings. Becase Streamdeck does not.
+	private static async initializeActionAsync(action: any) {
+		// Auto Initialize Settings. Becase Streamdeck does not.
 		const settings = await action.getSettings();
 		settings.rotationMode = settings.rotationMode ?? RotationMode.AllAutoDetect;
 		settings.maxTitleLength = settings.maxTitleLength ?? 20;

@@ -19,8 +19,11 @@
         </sdpi-select>
     </sdpi-item>
     
-    <sdpi-item label="Volume Mixer Mode">
-        <input type="number" id="changeChannelValue" default="5" placeholder="Enter Volume %" min="1" max="100" />
+    <sdpi-item label="Volume Change/Set Value">
+        <sdpi-range type="number" setting="changeChannelValue" default="5" placeholder="Enter Volume %" min="0" max="100" showlabels>
+            <span slot="min">0%</span>
+            <span slot="max">100%</span>
+        </sdpi-range>
     </sdpi-item>
     
 

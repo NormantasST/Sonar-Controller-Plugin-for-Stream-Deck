@@ -22,16 +22,23 @@ export class ChangeChannelVolume extends SingletonAction<ChangeChannelVolumeSett
 
 	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
 		await streamDeck.settings.setGlobalSettings(globalSettings);
-		streamDeck.actions.forEach(async (action) => {
+
+		await Promise.all(streamDeck.actions.map(async (action) => {
 			switch (action.manifestId) {
 				case OUTPUT_VOLUME_MIXER:
-					await ChangeChannelVolume.updateThisActionAsync(action);
-					break;
+					return ChangeChannelVolume.updateThisActionAsync(action);
 			}
-		});
+		}));
 	}
 
 	private static async initializeActionAsync(action: any) {
+		// Auto Initialize Settings. Becase Streamdeck does not.
+		const settings = await action.getSettings();
+		settings.targetChannel = settings.targetChannel ?? ChangeChannelVolumeChannels.ClassicMaster;
+		settings.mode = settings.mode ?? ChangeChannelVolumeModes.IncreaseVolume;
+		settings.changeChannelValue = settings.changeChannelValue ?? 5;
+		await action.setSettings(settings);
+
 		await ChangeChannelVolume.updateThisActionAsync(action);
 	}
 
@@ -68,9 +75,9 @@ export class ChangeChannelVolume extends SingletonAction<ChangeChannelVolumeSett
 		const currentVolume = currentChannel.volume ?? 0;
 		switch (localSettings.mode) {
 			case ChangeChannelVolumeModes.IncreaseVolume:
-				return Math.max(currentVolume + localSettings.changeChannelValue / 100, 1);
+				return Math.min(currentVolume + localSettings.changeChannelValue / 100, 1);
 			case ChangeChannelVolumeModes.DecreaseVolume:
-				return Math.min(currentVolume - localSettings.changeChannelValue / 100, 0);
+				return Math.max(currentVolume - localSettings.changeChannelValue / 100, 0);
 			default:
 				throw logErrorAndThrow(logger, `Can't get update volume for Target Channel: ${localSettings.mode}`);
 		}
@@ -124,9 +131,9 @@ export class ChangeChannelVolume extends SingletonAction<ChangeChannelVolumeSett
 			case ChangeChannelVolumeModes.SetVolumeTo:
 				return `Set ${localSettings.targetChannel} \r\n To ${localSettings.changeChannelValue}%`;
 			case ChangeChannelVolumeModes.IncreaseVolume:
-				return `+${localSettings.changeChannelValue}% \r\n ${localSettings.targetChannel} (${currentChanel.volume * 100}%)`;
+				return `+${localSettings.changeChannelValue}% \r\n ${localSettings.targetChannel.replace(" ", "\r\n")} \r\n (${Math.round(currentChanel.volume * 100)}%)`;
 			case ChangeChannelVolumeModes.DecreaseVolume:
-				return `-${localSettings.changeChannelValue}% \r\n ${localSettings.targetChannel} (${currentChanel.volume * 100}%)`;
+				return `-${localSettings.changeChannelValue}% \r\n ${localSettings.targetChannel.replace(" ", "\r\n")} \r\n (${Math.round(currentChanel.volume * 100)}%)`;
 			default:
 				throw logErrorAndThrow(logger, `Unknown mode for generating title: ${localSettings.mode}`);
 		}
