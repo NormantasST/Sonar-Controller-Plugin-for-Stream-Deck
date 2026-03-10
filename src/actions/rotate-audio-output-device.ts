@@ -14,14 +14,14 @@ const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 
 @action({ UUID: ROTATE_OUTPUT_DEVICES })
 export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSettings> implements INotifyableAction {
-	static async updateThisActionAsync(action: any): Promise<void> {
+	public static async updateThisActionAsync(action: any ): Promise<void> {
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 		const localSettings = await action.getSettings();
 
 		await action.setTitle(RotateOutputAudioDevice.getTitleFromSettings(globalSettings, localSettings));
 	}
 
-	async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
+	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
 		await streamDeck.settings.setGlobalSettings(globalSettings);
 		await Promise.all(streamDeck.actions.map(async (action) => {
 			switch (action.manifestId) {
@@ -31,16 +31,16 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		}));
 	}
 
-	override async onWillAppear(ev: WillAppearEvent<RotateOutputSettings>): Promise<void> {
+	public override async onWillAppear(ev: WillAppearEvent<RotateOutputSettings>): Promise<void> {
 		await RotateOutputAudioDevice.initializeActionAsync(ev.action);
 	}
 
-	override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<RotateOutputSettings> | any): Promise<void> {
+	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<RotateOutputSettings> | any): Promise<void> {
 		if (ev.id === undefined)
 			await RotateOutputAudioDevice.updateThisActionAsync(ev.action);
 	}
 
-	override async onKeyDown(ev: KeyDownEvent<RotateOutputSettings>): Promise<void> {
+	public override async onKeyDown(ev: KeyDownEvent<RotateOutputSettings>): Promise<void> {
 		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
@@ -67,11 +67,11 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
-	static async initializeActionAsync(action: any) {
+	private static async initializeActionAsync(action: any) {
 		await RotateOutputAudioDevice.updateThisActionAsync(action);
 	}
 
-	static updateAudioDeviceGlobalSettings(
+	private static updateAudioDeviceGlobalSettings(
 		globalSettings: GlobalSettings,
 		deviceId: string,
 		friendlyName: string,
@@ -86,7 +86,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		channel!.deviceName = friendlyName;
 	}
 
-	static getCurrentChannel(
+	private static getCurrentChannel(
 		globalSettings: GlobalSettings,
 		rotationMode: RotationMode,
 		sonarMode: SonarMode): DeviceData {
@@ -118,7 +118,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		throw logErrorAndThrow(logger, "Channel is not assigned");
 	}
 
-	static async setCurrentAudioOutputAsync(nextAudioDeviceId: string, rotationMode: RotationMode, sonarMode: SonarMode) {
+	private static async setCurrentAudioOutputAsync(nextAudioDeviceId: string, rotationMode: RotationMode, sonarMode: SonarMode) {
 		switch (rotationMode) {
 			case RotationMode.Game:
 				await sonarClient.putOutputAudioDeviceAsync(nextAudioDeviceId, RedirectionEnum.Game);
@@ -158,7 +158,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		}
 	}
 
-	static getTitleFromSettings(globalSettings: GlobalSettings, localSettings: RotateOutputSettings) {
+	private static getTitleFromSettings(globalSettings: GlobalSettings, localSettings: RotateOutputSettings) {
 		const rotationMode = localSettings.rotationMode;
 		const sonarMode = globalSettings.sonarMode
 
@@ -171,7 +171,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		return wrapText(titleText, 9, localSettings.maxTitleLength);
 	}
 
-	static async filterAvailableDevicesAsync(allDevices: AudioDevice[], allowExcludedDevices: boolean): Promise<string[]> {
+	private static async filterAvailableDevicesAsync(allDevices: AudioDevice[], allowExcludedDevices: boolean): Promise<string[]> {
 		if (allowExcludedDevices)
 			return allDevices.map((device) => device.id ?? "Unknown");
 		else {
@@ -180,7 +180,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		}
 	}
 
-	static async getCurrentDeviceIdAsync(
+	private static async getCurrentDeviceIdAsync(
 		globalSettings: GlobalSettings,
 		rotationMode: RotationMode,
 		sonarMode: SonarMode): Promise<string> {
@@ -188,7 +188,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		return channel.deviceId ?? "Unknown";
 	}
 
-	static getNextAudioDevice(allDevices: AudioDevice[], availableDeviceIds: string[], currentRenderDeviceId: string): AudioDevice {
+	private static getNextAudioDevice(allDevices: AudioDevice[], availableDeviceIds: string[], currentRenderDeviceId: string): AudioDevice {
 		const currentOutputDeviceIndex = availableDeviceIds.findIndex((id) => id == currentRenderDeviceId) ?? 0;
 		const nextAudioDeviceIdIndex = currentOutputDeviceIndex + 1 < availableDeviceIds.length ? currentOutputDeviceIndex + 1 : 0;
 		const nextAudioDeviceId = availableDeviceIds[nextAudioDeviceIdIndex];

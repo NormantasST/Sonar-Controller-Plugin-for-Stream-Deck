@@ -43,6 +43,12 @@ export default tseslint.config(
             // Disallow multiple empty lines (max 1 consecutive empty line)
             'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 0 }],
 
+            // Enforce explicit public/private/protected on class members
+            '@typescript-eslint/explicit-member-accessibility': ['error', {
+                accessibility: 'explicit',
+                overrides: { constructors: 'off' }
+            }],
+
             // Enforce async functions/methods end with "Async" suffix
             '@typescript-eslint/naming-convention': ['error',
                 {
