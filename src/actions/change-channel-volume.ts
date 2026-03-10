@@ -6,7 +6,7 @@ import { VOLUME_MIXER as OUTPUT_VOLUME_MIXER } from "../constants/action-uuids.c
 import type { DeviceData } from "../models/types/device-data.type";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
-import { DeviceRole } from "../models/types/sonar-models.type";
+import { DeviceRole } from "../models/types/sonar-models.type"
 
 const logger = streamDeck.logger.createScope("output-volume-mixer");
 
@@ -15,14 +15,13 @@ export class ChangeChannelVolume extends SingletonAction<ChangeChannelVolumeSett
 	public static async updateThisActionAsync(action: any): Promise<void> {
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 		const localSettings = await action.getSettings() as ChangeChannelVolumeSettings;
-
+		
 		await action.setTitle(ChangeChannelVolume.generateTitle(globalSettings, localSettings));
 		// TODO Add Image Updating.
 	}
 
 	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
 		await streamDeck.settings.setGlobalSettings(globalSettings);
-
 		await Promise.all(streamDeck.actions.map(async (action) => {
 			switch (action.manifestId) {
 				case OUTPUT_VOLUME_MIXER:
@@ -32,11 +31,12 @@ export class ChangeChannelVolume extends SingletonAction<ChangeChannelVolumeSett
 	}
 
 	private static async initializeActionAsync(action: any) {
-		// Auto Initialize Settings. Becase Streamdeck does not.
+		// Auto Initialize Settings. Because Streamdeck does not.
 		const settings = await action.getSettings();
 		settings.targetChannel = settings.targetChannel ?? ChangeChannelVolumeChannels.ClassicMaster;
 		settings.mode = settings.mode ?? ChangeChannelVolumeModes.IncreaseVolume;
 		settings.changeChannelValue = settings.changeChannelValue ?? 5;
+		settings.showTextComponents = settings.showTextComponents ?? ["mode", "channel", "output"];
 		await action.setSettings(settings);
 
 		await ChangeChannelVolume.updateThisActionAsync(action);
@@ -127,13 +127,25 @@ export class ChangeChannelVolume extends SingletonAction<ChangeChannelVolumeSett
 
 	private static generateTitle(globalSettings: GlobalSettings, localSettings: ChangeChannelVolumeSettings): string {
 		const currentChanel = ChangeChannelVolume.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
+		const simplifiedChannelName = VolumeChannelTranslations.get(localSettings.targetChannel) ?? localSettings.targetChannel;
+		
+		const showMode = localSettings.showTextComponents.includes("mode");
+		const showChannel = localSettings.showTextComponents.includes("channel");
+		const showOutput = localSettings.showTextComponents.includes("output");
+		
 		switch (localSettings.mode) {
 			case ChangeChannelVolumeModes.SetVolumeTo:
-				return `Set ${localSettings.targetChannel} \r\n To ${localSettings.changeChannelValue}%`;
+				return ""
+				+ (showMode ? "Set\r\n" : "")
+				+ (showChannel ? `${simplifiedChannelName}\r\n` : "")
+				+ (showOutput ? `To ${localSettings.changeChannelValue}%` : "")
 			case ChangeChannelVolumeModes.IncreaseVolume:
-				return `+${localSettings.changeChannelValue}% \r\n ${localSettings.targetChannel.replace(" ", "\r\n")} \r\n (${Math.round(currentChanel.volume * 100)}%)`;
 			case ChangeChannelVolumeModes.DecreaseVolume:
-				return `-${localSettings.changeChannelValue}% \r\n ${localSettings.targetChannel.replace(" ", "\r\n")} \r\n (${Math.round(currentChanel.volume * 100)}%)`;
+				const sign = localSettings.mode === ChangeChannelVolumeModes.IncreaseVolume ? "+" : "-";
+				return ""
+				+ (showMode ? `${sign}${localSettings.changeChannelValue}%\r\n` : "")
+				+ (showChannel ? `${simplifiedChannelName.replace(" ", "\r\n")}\r\n` : "")
+				+ (showOutput ? `(${Math.round(currentChanel.volume * 100)}%)` : "")
 			default:
 				throw logErrorAndThrow(logger, `Unknown mode for generating title: ${localSettings.mode}`);
 		}
@@ -147,15 +159,16 @@ type ChangeChannelVolumeSettings = {
 	targetChannel: ChangeChannelVolumeChannels,
 	mode: ChangeChannelVolumeModes,
 	changeChannelValue: number,
+	showTextComponents: ("mode" | "channel" | "output")[]
 };
 
 enum ChangeChannelVolumeChannels {
-	ClassicMaster = "Classic Master",
-	ClassicGame = "Classic Game",
-	ClassicChat = "Classic Chat",
-	ClassicMedia = "Classic Media",
-	ClassicAux = "Classic Aux",
-	ClassicMic = "Classic Mic",
+	ClassicMaster = "classic-master",
+	ClassicGame = "classic-game",
+	ClassicChat = "classic-chat",
+	ClassicMedia = "classic-media",
+	ClassicAux = "classic-aux",
+	ClassicMic = "classic-mic",
 }
 
 enum ChangeChannelVolumeModes {
@@ -170,4 +183,12 @@ export const ClassicVolumeSettingsEnumMap = new Map<ChangeChannelVolumeChannels,
 	[ChangeChannelVolumeChannels.ClassicMedia, DeviceRole.Media],
 	[ChangeChannelVolumeChannels.ClassicAux, DeviceRole.Aux],
 	[ChangeChannelVolumeChannels.ClassicMic, DeviceRole.Microphone],
+]);
+
+export const VolumeChannelTranslations = new Map<ChangeChannelVolumeChannels, string>([
+	[ChangeChannelVolumeChannels.ClassicGame, "Game"],
+		[ChangeChannelVolumeChannels.ClassicChat, "Chat"],
+	[ChangeChannelVolumeChannels.ClassicMedia, "Media"],
+	[ChangeChannelVolumeChannels.ClassicAux, "Aux"],
+	[ChangeChannelVolumeChannels.ClassicMic, "Mic"],
 ]);

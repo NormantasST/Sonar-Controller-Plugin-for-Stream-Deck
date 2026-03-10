@@ -34,18 +34,26 @@
     
 
     <sdpi-item label="Volume Mixer Channel">
-        <sdpi-select setting="targetChannel" default="Classic Master" placeholder="Please Chose a Channel">
-            <optgroup label="Classic Mode">
-                <option value="Classic Master">Master</option>
-                <option value="Classic Game">Game</option>
-                <option value="Classic Chat">Chat</option>
-                <option value="Classic Media">Media</option>
-                <option value="Classic Aux">Aux</option>
-                <option value="Classic Mic">Microphone</option>
+        <sdpi-select setting="targetChannel" default="classic-master" placeholder="Please Chose a Channel">
+            <optgroup label="Classic">
+                <option value="classic-master">Master</option>
+                <option value="classic-game">Game</option>
+                <option value="classic-chat">Chat</option>
+                <option value="classic-media">Media</option>
+                <option value="classic-aux">Aux</option>
+                <option value="classic-mic">Microphone</option>
             </optgroup>
         </sdpi-select>
     </sdpi-item>
     
+    <sdpi-item label="Auto Text">
+        <sdpi-checkbox-list setting="showTextComponents" columns="1">
+            <option value="mode" selected>Mode</option>
+            <option value="channel" selected>Channel</option>
+            <option value="output" selected>Output</option>
+        </sdpi-checkbox-list>
+    </sdpi-item>
+
 </body>
 
 </html>
