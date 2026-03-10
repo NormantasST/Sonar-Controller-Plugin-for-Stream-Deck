@@ -22,6 +22,13 @@ This project is free to use for personal and commercial use. It would be nice to
 - Set Sonar Title Max Length: Allows to control the titles' length which is auto-generated from Sonar. If value is set to 0 it will show the whole title.
 - User can select if they want to include or exclude `Excluded Devices`.
 
+### Volume Mixer
+
+- **Modes:**: `Increase Volume By %`, `Decrease Volume By %`, `Set Volume To %`.
+- **Channels:**:
+  - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
+  - **Streaming:** Not Supported.
+
 ## Basic Setup
 
 1. Install Node.js + NPM. Recommended to use [Node.js v20.20.0 (LTS)](https://nodejs.org/en/download). To manage Node versions it is recommended to use [Node Version Manager (NVM)](https://www.nvmnode.com/guide/download.html).
