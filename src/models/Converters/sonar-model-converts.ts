@@ -1,4 +1,4 @@
-import { RedirectionEnum, RedirectionIntEnum, StreamRedirectionEnum, StreamRedirectionIntEnum } from "../types/sonar-models.type";
+import { ClassicVolumeChannelRoleInt, DeviceRole, RedirectionEnum, RedirectionIntEnum, StreamRedirectionEnum, StreamRedirectionIntEnum } from "../types/sonar-models.type";
 
 export const RedirectionEnumMap = new Map<RedirectionEnum, RedirectionIntEnum>([
     [RedirectionEnum.Game, RedirectionIntEnum.Game],
@@ -12,4 +12,12 @@ export const StreamRedirectionEnumMap = new Map<StreamRedirectionEnum, StreamRed
     [StreamRedirectionEnum.PersonalMix, StreamRedirectionIntEnum.PersonalMix],
     [StreamRedirectionEnum.StreamMix, StreamRedirectionIntEnum.StreamMix],
     [StreamRedirectionEnum.Microphone, StreamRedirectionIntEnum.Microphone],
+]);
+
+export const ClassicVolumeSettingsEnumMap = new Map<DeviceRole, ClassicVolumeChannelRoleInt>([
+    [DeviceRole.Game, ClassicVolumeChannelRoleInt.Game],
+    [DeviceRole.Chat, ClassicVolumeChannelRoleInt.Chat],
+    [DeviceRole.Media, ClassicVolumeChannelRoleInt.Media],
+    [DeviceRole.Aux, ClassicVolumeChannelRoleInt.Aux],
+    [DeviceRole.Microphone, ClassicVolumeChannelRoleInt.Microphone],
 ]);

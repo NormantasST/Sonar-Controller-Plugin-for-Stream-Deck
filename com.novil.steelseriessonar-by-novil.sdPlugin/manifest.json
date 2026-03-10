@@ -5,7 +5,7 @@
 	"Actions": [
 		{
 			"Name": "Rotate Output Devices",
-			"UUID": "com.novil.steelseriessonar-by-novil.rotate-output-audio-device",
+			"UUID": "com.novil.steelseriessonar-by-novil.rotate-output-audio-device-v1",
 			"Icon": "imgs/actions/rotate-output-devices/icon",
 			"Tooltip": "Rotates Selected Output Device",
 			"PropertyInspectorPath": "ui/rotate-audio-output-device.html",
@@ -15,6 +15,22 @@
 			"States": [
 				{
 					"Image": "imgs/actions/rotate-output-devices/key",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Volume Mixer",
+			"UUID": "com.novil.steelseriessonar-by-novil.volume-mixer-v1",
+			"Icon": "imgs/actions/change-channel-volume/icon",
+			"Tooltip": "Controls Volume Mixers",
+			"PropertyInspectorPath": "ui/change-channel-volume.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/change-channel-volume/key",
 					"TitleAlignment": "middle"
 				}
 			]

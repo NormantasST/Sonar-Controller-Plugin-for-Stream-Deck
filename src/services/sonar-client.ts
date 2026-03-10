@@ -3,9 +3,9 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import type { Response } from "node-fetch";
 import fetch from "node-fetch";
-import type { AudioDevice, ClassicRedirection, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamRedirection, StreamRedirectionEnum } from '../models/types/sonar-models.type';
+import type { AudioDevice, ClassicRedirection, DeviceRole, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamRedirection, StreamRedirectionEnum, VolumeSettings } from '../models/types/sonar-models.type';
 import { logErrorAndThrow } from '../helpers/streamdeck-logger-helper';
-import { RedirectionEnumMap, StreamRedirectionEnumMap } from '../models/converters/sonar-model-converts';
+import { ClassicVolumeSettingsEnumMap, RedirectionEnumMap, StreamRedirectionEnumMap } from '../models/converters/sonar-model-converts';
 
 const logger = streamDeck.logger.createScope("sonar-client");
 
@@ -17,12 +17,12 @@ class SonarClient {
     constructor() { }
 
     // Updates Channel into Output to selected id.
-    async putStreamOutputAudioDeviceAsync(deviceId: string, redirectionId: StreamRedirectionEnum): Promise<void> {
+    public async putStreamOutputAudioDeviceAsync(deviceId: string, redirectionId: StreamRedirectionEnum): Promise<void> {
         const channel = StreamRedirectionEnumMap.get(redirectionId);
         await this.doHttpRequestAsync(`/StreamRedirections/${channel}/deviceId/${deviceId}`, "PUT");
     }
 
-    async putOutputAudioDeviceAsync(deviceId: string, redirectionId: RedirectionEnum): Promise<void> {
+    public async putOutputAudioDeviceAsync(deviceId: string, redirectionId: RedirectionEnum): Promise<void> {
         const channel = RedirectionEnumMap.get(redirectionId);
         await this.doHttpRequestAsync(`/ClassicRedirections/${channel}/deviceId/${deviceId}`, "PUT");
     }
@@ -53,6 +53,19 @@ class SonarClient {
     public getAllAudioDevicesAsync(): Promise<AudioDevice[]> {
         return this.doHttpRequestAsync<AudioDevice[]>("/AudioDevices", "GET");
     }
+
+    public getClassicVolumeSettingsAsync(): Promise<VolumeSettings> {
+		return this.doHttpRequestAsync<VolumeSettings>(`/VolumeSettings/classic`, "GET");
+    }
+
+    public setClassicMasterVolumeAsync(updatedVolume: number): Promise<void> {
+		return this.doHttpRequestAsync(`/VolumeSettings/classic/Master/Volume/${updatedVolume}`, "PUT");
+	}
+
+	public setClassicChannelVolumeAsync(updatedVolume: number, targetChannel: DeviceRole): Promise<void> {
+        const channel = ClassicVolumeSettingsEnumMap.get(targetChannel);
+		return this.doHttpRequestAsync(`/VolumeSettings/classic/${channel}/Volume/${updatedVolume}`, "PUT");
+	}
 
     private async doHttpRequestAsync<TResponse>(route: string, method: string, searchParams?: Record<string, string>, body?: object): Promise<TResponse> {
         let uri = await this.generateHttpRequestUriAsync(route, searchParams);

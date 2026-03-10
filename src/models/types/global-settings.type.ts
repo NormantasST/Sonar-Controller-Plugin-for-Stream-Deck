@@ -2,6 +2,8 @@ import type { DeviceData } from "./device-data.type";
 import type { SonarMode } from "./sonar-models.type";
 
 export type GlobalSettings = {
+    masterChannel: DeviceData,
+    micChannel: DeviceData;
     gameChannel: DeviceData,
     chatChannel: DeviceData,
     mediaChannel: DeviceData,
