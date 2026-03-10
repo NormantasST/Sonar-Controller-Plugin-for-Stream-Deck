@@ -30,7 +30,7 @@
 			],
 			"States": [
 				{
-					"Image": "imgs/actions/change-channel-volume/key",
+					"Image": "imgs/actions/change-channel-volume/key-40",
 					"TitleAlignment": "middle"
 				}
 			]
