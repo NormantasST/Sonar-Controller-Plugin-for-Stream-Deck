@@ -175,7 +175,7 @@ export class ChangeChannelVolume extends SingletonAction<ChangeChannelVolumeSett
 		}
 
 		if (localSettings.mode === ChangeChannelVolumeModes.DecreaseVolume){
-			if (volume > 0.50) // Over 50
+			if (volume >= 0.50) // Over 50
 				return basePath + "key-decrease-empty";
 
 			if (volume > 0.30 && volume < 0.50) // from 50 to 35
