@@ -6,4 +6,5 @@
 
 - **SteelSeries Sonar**: Software that provides audio control and customization.
 - **Sonar OpenAPI Definition**: https://github.com/wex/sonar-rev/blob/main/openapi/swagger.json
-b
+
+**Never Commit or Push Changes.**

@@ -45,6 +45,10 @@ This project is free to use for personal and commercial use. It would be nice to
 
 > 📓 *Note:* To Package the plugin for publishing run `npm run package`. It will generate a `com.novil.steelseriessonar-by-novil.streamDeckPlugin` file. It is used to publish the plugin on [Makers Console](https://maker.elgato.com) which allows users to download the plugin via [Elgato Marketplace](https://marketplace.elgato.com).
 
+### Troubleshooting
+
+- If plugin fails to be found during `npm run watch` or be linked try to manually link via: `streamdeck link com.novil.steelseriessonar-by-novil.sdPlugin`.
+
 ## Special Thanks!
 
 [SteelSeries GG - Sonar API reverse engineering](https://github.com/wex/sonar-rev) by Niko Hujanen for reverse engineering the OpenAPI definition which helped writing the tool.
