@@ -7,6 +7,7 @@ export async function getCurrentSonarSettingsAsync(): Promise<GlobalSettings> {
     const streamRedirections = await sonarClient.getStreamDeviceRedirectionsAsync();
 
     const mode = await sonarClient.getSonarModeAsync();
+    const chatMix = await sonarClient.getChatMixAsync();
 
     const allOutputDevices = await sonarClient.getAllOutputAudioDevicesAsync();
     const gameDevice = allOutputDevices.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Game)?.deviceId);
@@ -21,6 +22,7 @@ export async function getCurrentSonarSettingsAsync(): Promise<GlobalSettings> {
 
     const globalSettings: GlobalSettings = {
         sonarMode: mode,
+        chatMixBalance: chatMix.balance ?? 0,
         masterChannel: {
             deviceId: 'Master',
             deviceName: 'Master',

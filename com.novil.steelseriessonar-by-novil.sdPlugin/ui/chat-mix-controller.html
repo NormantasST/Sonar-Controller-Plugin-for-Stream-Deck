@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title>ChatMix Controller</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+
+<body>
+    <!--
+        Learn more about property inspector components at https://sdpi-components.dev/docs/components
+    -->
+    <sdpi-item label="Channel">
+        <sdpi-select setting="channel" default="chat" placeholder="Please Choose a Channel">
+            <option value="chat">Chat</option>
+            <option value="game">Game</option>
+        </sdpi-select>
+    </sdpi-item>
+
+    <sdpi-item label="Mode">
+        <sdpi-select setting="mode" default="increase" placeholder="Please Choose a Mode">
+            <option value="increase">Increase Channel By %</option>
+            <option value="set-volume">Set Channel To %</option>
+        </sdpi-select>
+    </sdpi-item>
+    
+    <sdpi-item label="Change/Set Value">
+        <sdpi-range
+            type="number"
+            setting="changeValue"
+            default="0.05"
+            placeholder="Select Percentage %"
+            min="0"
+            max="1"
+            step="0.01"
+            showlabels>
+            <span slot="min">0%</span>
+            <span slot="max">100%</span>
+        </sdpi-range>
+    </sdpi-item>
+
+    <sdpi-item label="Auto Text">
+        <sdpi-checkbox-list setting="showTextComponents" columns="1">
+            <option value="change" selected>Change</option>
+            <option value="channel" selected>Channel</option>
+            <option value="status" selected>Status</option>
+        </sdpi-checkbox-list>
+    </sdpi-item>
+
+</body>
+
+</html>

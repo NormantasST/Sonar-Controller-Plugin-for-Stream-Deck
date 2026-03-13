@@ -102,3 +102,8 @@ export enum VolumeSettingsDeviceEnums {
     Classic = "classic",
     Streaming = "stream"
 }
+
+export type ChatMixResponse = {
+    balance: number;
+    state: number;
+};

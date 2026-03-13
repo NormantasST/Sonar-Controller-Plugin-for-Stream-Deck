@@ -1,6 +1,6 @@
 {
 	"Name": "Sonar Controller",
-	"Version": "1.1.0.0",
+	"Version": "1.4.0.0",
 	"Author": "NOVIL, Normantas Stankevičius",
 	"Actions": [
 		{
@@ -47,6 +47,22 @@
 			"States": [
 				{
 					"Image": "imgs/actions/mute-channel/key-unmuted",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "ChatMix Controller",
+			"UUID": "com.novil.steelseriessonar-by-novil.chat-mix-controller-v1",
+			"Icon": "imgs/actions/chat-mix-controller/icon",
+			"Tooltip": "Controls Game/Chat Audio Balance",
+			"PropertyInspectorPath": "ui/chat-mix-controller.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/chat-mix-controller/key-0",
 					"TitleAlignment": "middle"
 				}
 			]
