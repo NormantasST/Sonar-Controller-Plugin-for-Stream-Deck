@@ -22,7 +22,7 @@ export async function getCurrentSonarSettingsAsync(): Promise<GlobalSettings> {
 
     const globalSettings: GlobalSettings = {
         sonarMode: mode,
-        chatMixBalance: chatMix.balance,
+        chatMixBalance: chatMix.balance ?? 0,
         masterChannel: {
             deviceId: 'Master',
             deviceName: 'Master',

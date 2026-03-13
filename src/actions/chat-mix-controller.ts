@@ -63,7 +63,7 @@ export class ChatMixController extends SingletonAction<ChatMixControllerSettings
 
 	private static getUpdatedChatMixBalance(localSettings: ChatMixControllerSettings, globalSettings: GlobalSettings): number {
 		const currentBalance = globalSettings.chatMixBalance ?? 0;
-		const changeValue = localSettings.changeValue
+		const changeValue = localSettings.changeValue;
 
 		if (localSettings.mode === ChatMixControllerModes.Increase)
 			switch (localSettings.channel) {
@@ -90,7 +90,7 @@ export class ChatMixController extends SingletonAction<ChatMixControllerSettings
 
 	private static generateTitle(globalSettings: GlobalSettings, localSettings: ChatMixControllerSettings): string {
 		const changeValuePercentage = Math.round(localSettings.changeValue * 100);
-		const currentBalancePercentage = Math.round(globalSettings.chatMixBalance * 100);
+		const currentBalancePercentage = Math.round(globalSettings.chatMixBalance * 100) ?? 0;
 		const sign = localSettings.channel == ChatMixControllerChannels.Chat ? "+" : "-";
 
 		const showChange = localSettings.showTextComponents.includes("change");
