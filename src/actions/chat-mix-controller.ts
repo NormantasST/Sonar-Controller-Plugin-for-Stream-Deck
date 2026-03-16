@@ -15,6 +15,7 @@ export class ChatMixController extends SingletonAction<ChatMixControllerSettings
 		const localSettings = await action.getSettings() as ChatMixControllerSettings;
 
 		await action.setTitle(ChatMixController.generateTitle(globalSettings, localSettings));
+		await action.setImage(ChatMixController.getImagePath(globalSettings, localSettings));
 	}
 
 	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
@@ -84,14 +85,16 @@ export class ChatMixController extends SingletonAction<ChatMixControllerSettings
 				default:
 					throw logErrorAndThrow(logger, `Can't get updated balance for mode: ${localSettings.mode}`);
 			}
-			
+
 		throw logErrorAndThrow(logger, `Can't get updated balance for mode: ${localSettings.mode}`);
 	}
 
 	private static generateTitle(globalSettings: GlobalSettings, localSettings: ChatMixControllerSettings): string {
 		const changeValuePercentage = Math.round(localSettings.changeValue * 100);
 		const currentBalancePercentage = Math.round(globalSettings.chatMixBalance * 100) ?? 0;
-		const sign = localSettings.channel == ChatMixControllerChannels.Chat ? "+" : "-";
+
+		const multiplier = localSettings.channel == ChatMixControllerChannels.Chat ? 1 : -1;
+		const sign = currentBalancePercentage * multiplier >= 0 ? "+" : "-";
 
 		const showChange = localSettings.showTextComponents.includes("change");
 		const showChannel = localSettings.showTextComponents.includes("channel");
@@ -110,6 +113,57 @@ export class ChatMixController extends SingletonAction<ChatMixControllerSettings
 				+ (showStatus ? `To +${changeValuePercentage}%` : "")).trim()
 
 		throw logErrorAndThrow(logger, `Can't generate title for mode: ${localSettings.mode}`);
+	}
+
+	private static getImagePath(globalSettings: GlobalSettings, localSettings: ChatMixControllerSettings): string {
+		const basePath = `imgs/actions/chat-mix-controller/`;
+		if (localSettings.mode === ChatMixControllerModes.SetVolume)
+			switch (localSettings.channel) {
+				case ChatMixControllerChannels.Game:
+					return basePath + "key-game-set-to";
+				case ChatMixControllerChannels.Chat:
+					return basePath + "key-chat-set-to";
+			}
+
+		const chatMixBalance = globalSettings.chatMixBalance ?? 0;
+		logger.info(`ChatMix Balance: ${chatMixBalance} mode: ${localSettings.mode} channel: ${localSettings.channel}`);
+		if (localSettings.mode === ChatMixControllerModes.Increase) 
+			switch (localSettings.channel) {
+				case ChatMixControllerChannels.Game:
+					if (chatMixBalance > 0)
+						return basePath + "key-game-negative";
+
+					if (chatMixBalance == 0)
+						return basePath + "key-game-0";
+
+					if (chatMixBalance < 0 && chatMixBalance >= -0.35)
+						return basePath + "key-game-10";
+
+					if (chatMixBalance < -0.35 && chatMixBalance > -1)
+						return basePath + "key-game-50";
+
+					if (chatMixBalance == -1)
+						return basePath + "key-game-100";
+					break;	
+				case ChatMixControllerChannels.Chat:
+					if (chatMixBalance < 0)
+						return basePath + "key-chat-negative";
+
+					if (chatMixBalance == 0)
+						return basePath + "key-chat-0";
+
+					if (chatMixBalance > 0 && chatMixBalance <= 0.35)
+						return basePath + "key-chat-10";
+
+					if (chatMixBalance > 0.35 && chatMixBalance < 1)
+						return basePath + "key-chat-50";
+
+					if (chatMixBalance == 1)
+						return basePath + "key-chat-100";
+					break;	
+			}
+		
+		throw logErrorAndThrow(logger, `Unknown mode for generating image path: ${localSettings.mode} channel: ${localSettings.channel} balance: ${chatMixBalance}`);
 	}
 }
 

@@ -34,6 +34,10 @@ This project is free to use for personal and commercial use. It would be nice to
   - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
   - **Streaming:** Not Supported.
 
+### Chat Mix Controller
+
+- **Channels:**: `Game`, `Chat`.
+- **Modes:**: `Increase`, `SetTo`.
 
 ## Basic Setup
 
