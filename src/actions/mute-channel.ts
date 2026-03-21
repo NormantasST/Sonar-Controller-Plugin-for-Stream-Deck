@@ -119,7 +119,7 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 		+ (showChannel ? `${simplifiedChannelName}\r\n` : "")
 		+ (showStatus ? `(${muteStatus})` : "");
 
-		return output;
+		return output.trim();
 	}
 
 	private static getImagePath(globalSettings: GlobalSettings, localSettings: MuteChannelSettings): string {
