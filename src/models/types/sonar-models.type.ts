@@ -31,7 +31,7 @@ export enum DeviceRole {
     None = "none", // Marked for not Sonar Audio Devices.
     Game = "game",
     Microphone = "chatCapture",
-    Chat = "chatRenderer",
+    Chat = "chatRender",
     Media = "media",
     Aux = "aux",
 }
@@ -39,7 +39,7 @@ export enum DeviceRole {
 // 0, 4 are Unknown.
 export enum ClassicVolumeChannelRoleInt {
     Game = 2,
-    Chat = 1, // ChatRenderer
+    Chat = 1, // ChatRender
     Media = 5,
     Aux = 6,
     Microphone = 3, // ChatCapture
