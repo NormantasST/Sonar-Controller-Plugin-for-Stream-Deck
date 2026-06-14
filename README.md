@@ -31,11 +31,13 @@ This project is free to use for personal and commercial use. It would be nice to
 
 ### Volume Mixer
 
-- **Modes:**: `Increase Volume By %`, `Decrease Volume By %`, `Set Volume To %`.
-- **Channels:**:
-  - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
-  - **Streaming:** Not Supported.
-- **Dial & Button** Support.
+- **Action**:
+  - **Modes:**: `Increase Volume By %`, `Decrease Volume By %`, `Set Volume To %`.
+  - **Channels:**:
+    - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
+    - **Streaming:** Not Supported.
+- **Dial**:
+  - Supports Changing Volume.
 
 ### Mute Channel
 
@@ -45,8 +47,12 @@ This project is free to use for personal and commercial use. It would be nice to
 
 ### Chat Mix Controller
 
-- **Channels:**: `Game`, `Chat`.
-- **Modes:**: `Increase`, `SetTo`.
+- **Action**
+  - **Channels:**: `Game`, `Chat`.
+  - **Modes:**: `Increase`, `SetTo`.
+- **Dial**
+  - **Rotate** - Adjusts Balance.
+  - **Tap** - Resets Balance to 0.
 
 ## Basic Setup
 

@@ -1,12 +1,13 @@
 import streamDeck from "@elgato/streamdeck";
 import { RotateMicrophoneDevice } from "../actions/rotate-michrophone-device";
 import { RotateOutputAudioDevice } from "../actions/rotate-audio-output-device";
-import { CHAT_MIX_CONTROLLER, MUTE_CHANNEL, ROTATE_MICROPHONE_DEVICE, ROTATE_OUTPUT_DEVICES, ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER } from "../constants/action-uuids.constants";
+import { ACTION_CHAT_MIX_CONTROLLER, MUTE_CHANNEL, ROTATE_MICROPHONE_DEVICE, ROTATE_OUTPUT_DEVICES, ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER, DIAL_CHAT_MIX_CONTROLLER } from "../constants/action-uuids.constants";
 import { getCurrentSonarSettingsAsync } from "../sonar-helper";
-import { ChatMixController } from "../actions/chat-mix-controller";
 import { MuteChannel } from "../actions/mute-channel";
 import { DialChangeChannelVolume } from "../actions/change-channel-volume.dial";
 import { ActionChangeChannelVolume } from "../actions/change-channel-volume.action";
+import { DialChatMixController } from "../actions/chat-mix-controller.action.dial";
+import { ActionChatMixController } from "../actions/chat-mix-controller.action";
 
 export async function initializeGlobalSettingsAsync() {
     const globalSettings = await getCurrentSonarSettingsAsync();
@@ -34,8 +35,10 @@ export async function notifyAllAsync() {
                 return ActionChangeChannelVolume.updateThisActionAsync(action);
             case DIAL_VOLUME_MIXER:
                 return DialChangeChannelVolume.updateThisActionAsync(action);
-            case CHAT_MIX_CONTROLLER:
-                return ChatMixController.updateThisActionAsync(action);
+            case ACTION_CHAT_MIX_CONTROLLER:
+                return ActionChatMixController.updateThisActionAsync(action);
+            case DIAL_CHAT_MIX_CONTROLLER:
+                return DialChatMixController.updateThisActionAsync(action);
             case MUTE_CHANNEL:
                 return MuteChannel.updateThisActionAsync(action);
         }

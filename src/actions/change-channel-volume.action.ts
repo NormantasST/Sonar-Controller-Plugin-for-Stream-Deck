@@ -8,7 +8,7 @@ import type { BaseChangeChannelVolumeSettings} from "./change-channel-volume";
 import { getChannelFromGlobalSettings, initializeBase, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
 import { DialChangeChannelVolume } from "./change-channel-volume.dial";
 
-const logger = streamDeck.logger.createScope("output-volume-mixer");
+const logger = streamDeck.logger.createScope("output-volume-mixer-action");
 
 @action({ UUID: ACTION_OUTPUT_VOLUME_MIXER })
 export class ActionChangeChannelVolume extends SingletonAction<ActionChangeChannelVolumeSettings> implements INotifyableAction {
