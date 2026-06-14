@@ -6,3 +6,4 @@ node_modules/
 *.sdPlugin/logs
 com.novil.steelseriessonar-by-novil.streamDeckPlugin
 .vscode/
+!.vscode/settings.json
