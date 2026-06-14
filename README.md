@@ -35,6 +35,7 @@ This project is free to use for personal and commercial use. It would be nice to
 - **Channels:**:
   - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
   - **Streaming:** Not Supported.
+- **Dial & Button** Support.
 
 ### Mute Channel
 
