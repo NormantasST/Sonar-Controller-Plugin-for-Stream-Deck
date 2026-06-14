@@ -58,7 +58,7 @@ export default tseslint.config(
                     suffix: ['Async'],
                     filter: {
                         match: false,
-                        regex: '^(onWillAppear|onDidReceiveSettings|onKeyDown)$'
+                        regex: '^(onWillAppear|onDidReceiveSettings|onKeyDown|onDialRotate)$'
                     }
                 },
             ],

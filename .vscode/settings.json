@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "Redirections",
+        "streamdeck"
+    ],
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+        "*.ts": "${capture}.action.ts, ${capture}.dial.ts"
+    }
+}

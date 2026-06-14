@@ -11,15 +11,8 @@
     <!--
         Learn more about property inspector components at https://sdpi-components.dev/docs/components
     -->
-    <sdpi-item label="Volume Mixer Mode">
-        <sdpi-select setting="mode" default="increase" placeholder="Please Chose a Mode">
-            <option value="increase">Increase Volume By %</option>
-            <option value="decrease">Decrease Volume By %</option>
-            <option value="setVolumeTo">Set Volume To %</option>
-        </sdpi-select>
-    </sdpi-item>
     
-    <sdpi-item label="Volume Change/Set Value">
+    <sdpi-item label="Volume Change Sensitivity">
         <sdpi-range
         type="number"
         setting="changeChannelValue"
@@ -34,7 +27,7 @@
     
 
     <sdpi-item label="Volume Mixer Channel">
-        <sdpi-select setting="targetChannel" default="classic-master" placeholder="Please Choose a Channel">
+        <sdpi-select setting="targetChannel" default="classic-master" placeholder="Please Chose a Channel">
             <optgroup label="Classic">
                 <option value="classic-master">Master</option>
                 <option value="classic-game">Game</option>
@@ -44,14 +37,6 @@
                 <option value="classic-mic">Microphone</option>
             </optgroup>
         </sdpi-select>
-    </sdpi-item>
-    
-    <sdpi-item label="Auto Text">
-        <sdpi-checkbox-list setting="showTextComponents" columns="1">
-            <option value="mode" selected>Mode</option>
-            <option value="channel" selected>Channel</option>
-            <option value="output" selected>Output</option>
-        </sdpi-checkbox-list>
     </sdpi-item>
 
 </body>
