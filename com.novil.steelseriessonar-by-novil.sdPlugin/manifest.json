@@ -61,7 +61,10 @@
 				"Encoder"
 			],
 			"Encoder": {
-                "layout": "$B1"
+                "layout": "$B1",
+				"TriggerDescription": {
+					"Rotate": "Adjust Volume"
+				}
             },
 			"States": [
 				{
@@ -98,6 +101,29 @@
 			"States": [
 				{
 					"Image": "imgs/actions/chat-mix-controller/key-game-10",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "ChatMix Controller (Dial)",
+			"UUID": "com.novil.steelseriessonar-by-novil.chat-mix-controller-dial-v1",
+			"Icon": "imgs/actions/chat-mix-controller/icon",
+			"Tooltip": "Controls Game/Chat Audio Balance",
+			"PropertyInspectorPath": "ui/chat-mix-controller-dial.html",
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+                "layout": "$B2",
+				"TriggerDescription": {
+					"Rotate": "Adjust ChatMix Balance",
+					"Touch": "Reset ChatMix Balance"
+				}
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/chat-mix-controller/key-game-50",
 					"TitleAlignment": "middle"
 				}
 			]
