@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title>Volume Mixer Controls</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+
+<body>
+    <!--
+        Learn more about property inspector components at https://sdpi-components.dev/docs/components
+    -->
+    
+    <sdpi-item label="Volume Change Sensitivity">
+        <sdpi-range
+        type="number"
+        setting="changeChannelValue"
+        default="5"
+        placeholder="Enter Volume %"
+        min="0"
+        max="100" showlabels>
+            <span slot="min">0%</span>
+            <span slot="max">100%</span>
+        </sdpi-range>
+    </sdpi-item>
+    
+
+    <sdpi-item label="Volume Mixer Channel">
+        <sdpi-select setting="targetChannel" default="classic-master" placeholder="Please Chose a Channel">
+            <optgroup label="Classic">
+                <option value="classic-master">Master</option>
+                <option value="classic-game">Game</option>
+                <option value="classic-chat">Chat</option>
+                <option value="classic-media">Media</option>
+                <option value="classic-aux">Aux</option>
+                <option value="classic-mic">Microphone</option>
+            </optgroup>
+        </sdpi-select>
+    </sdpi-item>
+
+</body>
+
+</html>

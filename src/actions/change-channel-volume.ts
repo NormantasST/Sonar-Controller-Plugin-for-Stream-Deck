@@ -22,7 +22,7 @@ export async function updateVolumeAsync(targetChannel: ChangeChannelVolumeChanne
 	}
 }
 
-export function initializeBaseAsync(settings: BaseChangeChannelVolumeSettings) {
+export function initializeBase(settings: BaseChangeChannelVolumeSettings) {
 	settings.targetChannel = settings.targetChannel ?? ChangeChannelVolumeChannels.ClassicMaster;
 	settings.changeChannelValue = settings.changeChannelValue ?? 5;
 }

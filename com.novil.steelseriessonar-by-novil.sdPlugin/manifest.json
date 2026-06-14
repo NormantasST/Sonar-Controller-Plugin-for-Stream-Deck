@@ -46,7 +46,26 @@
 			],
 			"States": [
 				{
-					"Image": "imgs/actions/change-channel-volume/key-40",
+					"Image": "imgs/actions/change-channel-volume/key-25",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
+			"Name": "Volume Mixer (Dial)",
+			"UUID": "com.novil.steelseriessonar-by-novil.volume-mixer-dial-v1",
+			"Icon": "imgs/actions/change-channel-volume/icon",
+			"Tooltip": "Controls Volume Mixers",
+			"PropertyInspectorPath": "ui/change-channel-volume-dial.html",
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+                "layout": "$B1"
+            },
+			"States": [
+				{
+					"Image": "imgs/actions/change-channel-volume/key-25",
 					"TitleAlignment": "middle"
 				}
 			]

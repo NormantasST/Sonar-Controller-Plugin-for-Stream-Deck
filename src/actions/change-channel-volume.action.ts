@@ -2,10 +2,11 @@ import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@el
 import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
 import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
 import type { GlobalSettings } from "../models/types/global-settings.type";
-import { VOLUME_MIXER as ACTION_OUTPUT_VOLUME_MIXER } from "../constants/action-uuids.constants";
+import { ACTION_VOLUME_MIXER as ACTION_OUTPUT_VOLUME_MIXER, DIAL_VOLUME_MIXER } from "../constants/action-uuids.constants";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { BaseChangeChannelVolumeSettings} from "./change-channel-volume";
-import { getChannelFromGlobalSettings, initializeBaseAsync, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
+import { getChannelFromGlobalSettings, initializeBase, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
+import { DialChangeChannelVolume } from "./change-channel-volume.dial";
 
 const logger = streamDeck.logger.createScope("output-volume-mixer");
 
@@ -25,6 +26,8 @@ export class ActionChangeChannelVolume extends SingletonAction<ActionChangeChann
 			switch (action.manifestId) {
 				case ACTION_OUTPUT_VOLUME_MIXER:
 					return ActionChangeChannelVolume.updateThisActionAsync(action);
+				case DIAL_VOLUME_MIXER:
+					return DialChangeChannelVolume.updateThisActionAsync(action);
 			}
 		}));
 	}
@@ -32,7 +35,7 @@ export class ActionChangeChannelVolume extends SingletonAction<ActionChangeChann
 	private static async initializeAsync(action: any) {
 		// Auto Initialize Settings. Because Streamdeck does not.
 		const settings = await action.getSettings();
-		initializeBaseAsync(settings);
+		initializeBase(settings);
 		settings.mode = settings.mode ?? ChangeChannelVolumeModes.IncreaseVolume;
 		settings.showTextComponents = settings.showTextComponents ?? ["mode", "channel", "output"];
 		await action.setSettings(settings);
@@ -56,7 +59,7 @@ export class ActionChangeChannelVolume extends SingletonAction<ActionChangeChann
 		const updatedVolume = ActionChangeChannelVolume.getButtonUpdatedVolume(localSettings, globalSettings);
 		await updateVolumeAsync(localSettings.targetChannel, updatedVolume);
 
-		updateAudioDeviceGlobalSettings(globalSettings,localSettings.targetChannel,updatedVolume);
+		updateAudioDeviceGlobalSettings(globalSettings, localSettings.targetChannel, updatedVolume);
 		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
