@@ -3,9 +3,9 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import type { Response } from "node-fetch";
 import fetch from "node-fetch";
-import type { AudioDevice, ChatMixResponse, ClassicRedirection, DeviceRole, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamRedirection, StreamRedirectionEnum, VolumeSettings } from '../models/types/sonar-models.type';
+import type { AudioDevice, ChatMixResponse, ClassicRedirection, DeviceRole, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamDeviceRole, StreamRedirection, StreamRedirectionEnum, VolumeSettings } from '../models/types/sonar-models.type';
 import { logErrorAndThrow } from '../helpers/streamdeck-logger-helper';
-import { ClassicVolumeSettingsEnumMap, RedirectionEnumMap, StreamRedirectionEnumMap } from '../models/converters/sonar-model-converts';
+import { VolumeSettingsRoleEnumMap, RedirectionEnumMap, StreamRedirectionEnumMap, StreamerVolumeSettingsSubChannelEnumMap } from '../models/converters/sonar-model-converts';
 
 const logger = streamDeck.logger.createScope("sonar-client");
 
@@ -73,9 +73,20 @@ class SonarClient {
 		return this.doHttpRequestAsync(`/VolumeSettings/classic/Master/Volume/${updatedVolume}`, "PUT");
 	}
 
+    public setStreamerMasterVolumeAsync(updatedVolume: number, streamDeviceRole: StreamDeviceRole): Promise<void> {
+        const streamDeviceRoleValue = StreamerVolumeSettingsSubChannelEnumMap.get(streamDeviceRole);
+		return this.doHttpRequestAsync(`/VolumeSettings/streamer/${streamDeviceRoleValue}/master/volume/${updatedVolume}`, "PUT");
+	}
+
 	public setClassicChannelVolumeAsync(updatedVolume: number, targetChannel: DeviceRole): Promise<void> {
-        const channel = ClassicVolumeSettingsEnumMap.get(targetChannel);
+        const channel = VolumeSettingsRoleEnumMap.get(targetChannel);
 		return this.doHttpRequestAsync(`/VolumeSettings/classic/${channel}/Volume/${updatedVolume}`, "PUT");
+	}
+
+    public setStreamerChannelVolumeAsync(updatedVolume: number, targetChannel: DeviceRole, streamDeviceRole: StreamDeviceRole): Promise<void> {
+        const channel = VolumeSettingsRoleEnumMap.get(targetChannel);
+        const streamDeviceRoleValue = StreamerVolumeSettingsSubChannelEnumMap.get(streamDeviceRole);
+		return this.doHttpRequestAsync(`/VolumeSettings/streamer/${streamDeviceRoleValue}/${channel}/volume/${updatedVolume}`, "PUT");
 	}
 
 	public async getChatMixAsync(): Promise<ChatMixResponse> {
@@ -91,7 +102,7 @@ class SonarClient {
 	}
 
 	public setClassicChannelMuteAsync(isMuted: boolean, targetChannel: DeviceRole): Promise<void> {
-		const channel = ClassicVolumeSettingsEnumMap.get(targetChannel);
+		const channel = VolumeSettingsRoleEnumMap.get(targetChannel);
 		return this.doHttpRequestAsync(`/VolumeSettings/classic/${channel}/Mute/${isMuted}`, "PUT");
 	}
 
@@ -111,6 +122,7 @@ class SonarClient {
         let response: Response | undefined;
 
         try {
+            logger.info(`Doing Request: ${method} ${uri} with body: ${JSON.stringify(body)}`);
             response = await fetch(uri, requestBody);
         } catch (error: any) {
             // Sonar URL is not static and can change after requests.

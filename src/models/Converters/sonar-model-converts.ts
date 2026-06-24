@@ -1,4 +1,5 @@
-import { ClassicVolumeChannelRoleInt, DeviceRole, RedirectionEnum, RedirectionIntEnum, StreamRedirectionEnum, StreamRedirectionIntEnum } from "../types/sonar-models.type";
+import { StreamDeviceRoleInt } from "../types/sonar-models.type";
+import { VolumeChannelRoleInt, DeviceRole, RedirectionEnum, RedirectionIntEnum, StreamRedirectionEnum, StreamRedirectionIntEnum, StreamDeviceRole } from "../types/sonar-models.type";
 
 export const RedirectionEnumMap = new Map<RedirectionEnum, RedirectionIntEnum>([
     [RedirectionEnum.Game, RedirectionIntEnum.Game],
@@ -14,10 +15,15 @@ export const StreamRedirectionEnumMap = new Map<StreamRedirectionEnum, StreamRed
     [StreamRedirectionEnum.Microphone, StreamRedirectionIntEnum.Microphone],
 ]);
 
-export const ClassicVolumeSettingsEnumMap = new Map<DeviceRole, ClassicVolumeChannelRoleInt>([
-    [DeviceRole.Game, ClassicVolumeChannelRoleInt.Game],
-    [DeviceRole.Chat, ClassicVolumeChannelRoleInt.Chat],
-    [DeviceRole.Media, ClassicVolumeChannelRoleInt.Media],
-    [DeviceRole.Aux, ClassicVolumeChannelRoleInt.Aux],
-    [DeviceRole.Microphone, ClassicVolumeChannelRoleInt.Microphone],
+export const VolumeSettingsRoleEnumMap = new Map<DeviceRole, VolumeChannelRoleInt>([
+    [DeviceRole.Game, VolumeChannelRoleInt.Game],
+    [DeviceRole.Chat, VolumeChannelRoleInt.Chat],
+    [DeviceRole.Media, VolumeChannelRoleInt.Media],
+    [DeviceRole.Aux, VolumeChannelRoleInt.Aux],
+    [DeviceRole.Microphone, VolumeChannelRoleInt.Microphone],
+]);
+
+export const StreamerVolumeSettingsSubChannelEnumMap = new Map<StreamDeviceRole, StreamDeviceRoleInt>([
+    [StreamDeviceRole.Monitoring, StreamDeviceRoleInt.Monitoring],
+    [StreamDeviceRole.Streaming, StreamDeviceRoleInt.Streaming],
 ]);

@@ -40,18 +40,23 @@ export enum DeviceRole {
     Aux = "aux",
 }
 
-export enum StreamDeviceRole {
-    Monitoring = "monitoring",
-    Streaming = "streaming", 
-}
-
 // 0, 4 are Unknown.
-export enum ClassicVolumeChannelRoleInt {
+export enum VolumeChannelRoleInt {
     Game = 2,
     Chat = 1, // ChatRender
     Media = 5,
     Aux = 6,
     Microphone = 3, // ChatCapture
+}
+
+export enum StreamDeviceRole {
+    Monitoring = "monitoring",
+    Streaming = "streaming", 
+}
+
+export enum StreamDeviceRoleInt {
+    Monitoring = 1,
+    Streaming = 0,
 }
 
 export enum DeviceDataFlow {
