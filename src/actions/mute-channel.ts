@@ -6,7 +6,8 @@ import { MUTE_CHANNEL } from "../constants/action-uuids.constants";
 import type { DeviceData } from "../models/types/device-data.type";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
-import { DeviceRole } from "../models/types/sonar-models.type"
+import { DeviceRole, StreamDeviceRole } from "../models/types/sonar-models.type"
+import { wrapText } from "../helpers/plugin-helper";
 
 const logger = streamDeck.logger.createScope("mute-channel");
 
@@ -78,6 +79,30 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 				return globalSettings.auxChannel;
 			case MuteChannels.ClassicMic:
 				return globalSettings.micChannel;
+			case MuteChannels.StreamPersonalMaster:
+				return globalSettings.streamMasterPersonal;
+			case MuteChannels.StreamPersonalGame:
+				return globalSettings.streamGamePersonal;
+			case MuteChannels.StreamPersonalChat:
+				return globalSettings.streamChatPersonal;
+			case MuteChannels.StreamPersonalMedia:
+				return globalSettings.streamMediaPersonal;
+			case MuteChannels.StreamPersonalAux:
+				return globalSettings.streamAuxPersonal;
+			case MuteChannels.StreamPersonalMic:
+				return globalSettings.streamMicPersonal;
+			case MuteChannels.StreamBroadcastMaster:
+				return globalSettings.streamMasterBroadcast;
+			case MuteChannels.StreamBroadcastGame:
+				return globalSettings.streamGameBroadcast;
+			case MuteChannels.StreamBroadcastChat:
+				return globalSettings.streamChatBroadcast;
+			case MuteChannels.StreamBroadcastMedia:
+				return globalSettings.streamMediaBroadcast;
+			case MuteChannels.StreamBroadcastAux:
+				return globalSettings.streamAuxBroadcast;
+			case MuteChannels.StreamBroadcastMic:
+				return globalSettings.streamMicBroadcast;
 			default:
 				throw logErrorAndThrow(logger, `Unknown target channel from global settings: ${targetChannel}`);
 		}
@@ -93,6 +118,22 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 			case MuteChannels.ClassicAux:
 			case MuteChannels.ClassicMic:
 				return sonarClient.setClassicChannelMuteAsync(newMuteState, ClassicMuteSettingsEnumMap.get(targetChannel)!);
+			case MuteChannels.StreamPersonalMaster:
+				return sonarClient.setStreamMasterMuteAsync(newMuteState, StreamDeviceRole.Monitoring);
+			case MuteChannels.StreamPersonalGame:
+			case MuteChannels.StreamPersonalChat:
+			case MuteChannels.StreamPersonalMedia:
+			case MuteChannels.StreamPersonalAux:
+			case MuteChannels.StreamPersonalMic:
+				return sonarClient.setStreamChannelMuteAsync(newMuteState, ClassicMuteSettingsEnumMap.get(targetChannel)!, StreamDeviceRole.Monitoring);
+			case MuteChannels.StreamBroadcastMaster:
+				return sonarClient.setStreamMasterMuteAsync(newMuteState, StreamDeviceRole.Streaming);
+			case MuteChannels.StreamBroadcastGame:
+			case MuteChannels.StreamBroadcastChat:
+			case MuteChannels.StreamBroadcastMedia:
+			case MuteChannels.StreamBroadcastAux:
+			case MuteChannels.StreamBroadcastMic:
+				return sonarClient.setStreamChannelMuteAsync(newMuteState, ClassicMuteSettingsEnumMap.get(targetChannel)!, StreamDeviceRole.Streaming);
 			default:
 				throw logErrorAndThrow(logger, `Unknown target channel for muting: ${targetChannel}`);
 		}
@@ -119,7 +160,7 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 		+ (showChannel ? `${simplifiedChannelName}\r\n` : "")
 		+ (showStatus ? `(${muteStatus})` : "");
 
-		return output.trim();
+		return wrapText(output.trim(), 7);
 	}
 
 	private static getImagePath(globalSettings: GlobalSettings, localSettings: MuteChannelSettings): string {
@@ -148,6 +189,18 @@ enum MuteChannels {
 	ClassicMedia = "classic-media",
 	ClassicAux = "classic-aux",
 	ClassicMic = "classic-mic",
+	StreamPersonalGame = "stream-game-personal",
+	StreamPersonalChat = "stream-chat-personal",
+	StreamPersonalMaster = "stream-master-personal",
+	StreamPersonalMedia = "stream-media-personal",
+	StreamPersonalAux = "stream-aux-personal",
+	StreamPersonalMic = "stream-mic-personal",
+	StreamBroadcastGame = "stream-game-broadcast",
+	StreamBroadcastChat = "stream-chat-broadcast",
+	StreamBroadcastMaster = "stream-master-broadcast",
+	StreamBroadcastMedia = "stream-media-broadcast",
+	StreamBroadcastAux = "stream-aux-broadcast",
+	StreamBroadcastMic = "stream-mic-broadcast",
 }
 
 export const ClassicMuteSettingsEnumMap = new Map<MuteChannels, DeviceRole>([
@@ -156,6 +209,16 @@ export const ClassicMuteSettingsEnumMap = new Map<MuteChannels, DeviceRole>([
 	[MuteChannels.ClassicMedia, DeviceRole.Media],
 	[MuteChannels.ClassicAux, DeviceRole.Aux],
 	[MuteChannels.ClassicMic, DeviceRole.Microphone],
+	[MuteChannels.StreamPersonalGame, DeviceRole.Game],
+	[MuteChannels.StreamPersonalChat, DeviceRole.Chat],
+	[MuteChannels.StreamPersonalMedia, DeviceRole.Media],
+	[MuteChannels.StreamPersonalAux, DeviceRole.Aux],
+	[MuteChannels.StreamPersonalMic, DeviceRole.Microphone],
+	[MuteChannels.StreamBroadcastGame, DeviceRole.Game],
+	[MuteChannels.StreamBroadcastChat, DeviceRole.Chat],
+	[MuteChannels.StreamBroadcastMedia, DeviceRole.Media],
+	[MuteChannels.StreamBroadcastAux, DeviceRole.Aux],
+	[MuteChannels.StreamBroadcastMic, DeviceRole.Microphone],
 ]);
 
 export const MuteChannelTranslations = new Map<MuteChannels, string>([
@@ -165,4 +228,16 @@ export const MuteChannelTranslations = new Map<MuteChannels, string>([
 	[MuteChannels.ClassicMedia, "Media"],
 	[MuteChannels.ClassicAux, "Aux"],
 	[MuteChannels.ClassicMic, "Mic"],
+	[MuteChannels.StreamPersonalMaster, "Master Personal"],
+	[MuteChannels.StreamPersonalGame, "Game Personal"],
+	[MuteChannels.StreamPersonalChat, "Chat Personal"],
+	[MuteChannels.StreamPersonalMedia, "Media Personal"],
+	[MuteChannels.StreamPersonalAux, "Aux Personal"],
+	[MuteChannels.StreamPersonalMic, "Mic Personal"],
+	[MuteChannels.StreamBroadcastMaster, "Master StreamMix"],
+	[MuteChannels.StreamBroadcastGame, "Game StreamMix"],
+	[MuteChannels.StreamBroadcastChat, "Chat StreamMix"],
+	[MuteChannels.StreamBroadcastMedia, "Media StreamMix"],
+	[MuteChannels.StreamBroadcastAux, "Aux StreamMix"],
+	[MuteChannels.StreamBroadcastMic, "Mic StreamMix"],
 ]);
