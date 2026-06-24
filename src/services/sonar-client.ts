@@ -101,9 +101,20 @@ class SonarClient {
 		return this.doHttpRequestAsync(`/VolumeSettings/classic/Master/Mute/${isMuted}`, "PUT");
 	}
 
+    public setStreamMasterMuteAsync(isMuted: boolean, streamDeviceRole: StreamDeviceRole): Promise<void> {
+        const streamDeviceRoleValue = StreamerVolumeSettingsSubChannelEnumMap.get(streamDeviceRole);
+		return this.doHttpRequestAsync(`/VolumeSettings/streamer/${streamDeviceRoleValue}/master/isMuted/${isMuted}`, "PUT");
+	}
+
 	public setClassicChannelMuteAsync(isMuted: boolean, targetChannel: DeviceRole): Promise<void> {
 		const channel = VolumeSettingsRoleEnumMap.get(targetChannel);
 		return this.doHttpRequestAsync(`/VolumeSettings/classic/${channel}/Mute/${isMuted}`, "PUT");
+	}
+
+    public setStreamChannelMuteAsync(isMuted: boolean, targetChannel: DeviceRole, streamDeviceRole: StreamDeviceRole): Promise<void> {
+		const channel = VolumeSettingsRoleEnumMap.get(targetChannel);
+        const streamDeviceRoleValue = StreamerVolumeSettingsSubChannelEnumMap.get(streamDeviceRole);
+		return this.doHttpRequestAsync(`/VolumeSettings/streamer/${streamDeviceRoleValue}/${channel}/isMuted/${isMuted}`, "PUT");
 	}
 
     private async getAllAvailableFallbackAudioDevicesAsync(channel: keyof FallbackSettings): Promise<FallbackSetting[]> {
