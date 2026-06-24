@@ -35,7 +35,6 @@ This project is free to use for personal and commercial use. It would be nice to
   - **Modes:**: `Increase Volume By %`, `Decrease Volume By %`, `Set Volume To %`.
   - **Channels:**:
     - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
-    - **Streaming:** Not Supported.
 - **Dial**:
   - Supports Changing Volume.
 

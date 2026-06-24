@@ -41,12 +41,22 @@ export enum DeviceRole {
 }
 
 // 0, 4 are Unknown.
-export enum ClassicVolumeChannelRoleInt {
+export enum VolumeChannelRoleInt {
     Game = 2,
     Chat = 1, // ChatRender
     Media = 5,
     Aux = 6,
     Microphone = 3, // ChatCapture
+}
+
+export enum StreamDeviceRole {
+    Monitoring = "monitoring",
+    Streaming = "streaming", 
+}
+
+export enum StreamDeviceRoleInt {
+    Monitoring = 1,
+    Streaming = 0,
 }
 
 export enum DeviceDataFlow {
@@ -93,7 +103,7 @@ export type VolumeSettingsDevice = {
 };
 
 export type VolumeSettingsChannel = {
-  stream: Record<string, VolumeSettingsDevice>;
+  stream: Record<StreamDeviceRole, VolumeSettingsDevice>;
   classic: VolumeSettingsDevice;
 };
 

@@ -1,7 +1,7 @@
 import streamDeck from "@elgato/streamdeck";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
-import { DeviceRole } from "../models/types/sonar-models.type"
+import { DeviceRole, StreamDeviceRole } from "../models/types/sonar-models.type"
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import type { DeviceData } from "../models/types/device-data.type";
 
@@ -17,6 +17,22 @@ export async function updateVolumeAsync(targetChannel: ChangeChannelVolumeChanne
 		case ChangeChannelVolumeChannels.ClassicAux:
 		case ChangeChannelVolumeChannels.ClassicMic:
 			return sonarClient.setClassicChannelVolumeAsync(updatedVolume, ClassicVolumeSettingsEnumMap.get(targetChannel)!);
+		case ChangeChannelVolumeChannels.StreamPersonalMaster:
+			return sonarClient.setStreamerMasterVolumeAsync(updatedVolume, StreamDeviceRole.Monitoring);
+		case ChangeChannelVolumeChannels.StreamPersonalGame:
+		case ChangeChannelVolumeChannels.StreamPersonalChat:
+		case ChangeChannelVolumeChannels.StreamPersonalMedia:
+		case ChangeChannelVolumeChannels.StreamPersonalAux:
+		case ChangeChannelVolumeChannels.StreamPersonalMic:
+			return sonarClient.setStreamerChannelVolumeAsync(updatedVolume, ClassicVolumeSettingsEnumMap.get(targetChannel)!, StreamDeviceRole.Monitoring);
+		case ChangeChannelVolumeChannels.StreamBroadcastMaster:
+			return sonarClient.setStreamerMasterVolumeAsync(updatedVolume, StreamDeviceRole.Streaming);
+		case ChangeChannelVolumeChannels.StreamBroadcastGame:
+		case ChangeChannelVolumeChannels.StreamBroadcastChat:
+		case ChangeChannelVolumeChannels.StreamBroadcastMedia:
+		case ChangeChannelVolumeChannels.StreamBroadcastAux:
+		case ChangeChannelVolumeChannels.StreamBroadcastMic:
+			return sonarClient.setStreamerChannelVolumeAsync(updatedVolume, ClassicVolumeSettingsEnumMap.get(targetChannel)!, StreamDeviceRole.Streaming);
 		default:
 			throw logErrorAndThrow(logger, `Unknown target channel for updating volume: ${targetChannel}`);
 	}
@@ -41,18 +57,42 @@ export function getChannelFromGlobalSettings(globalSettings: GlobalSettings, tar
 			return globalSettings.auxChannel;
 		case ChangeChannelVolumeChannels.ClassicMic:
 			return globalSettings.micChannel;
+		case ChangeChannelVolumeChannels.StreamPersonalMaster:
+			return globalSettings.streamMasterPersonal;
+		case ChangeChannelVolumeChannels.StreamPersonalGame:
+			return globalSettings.streamGamePersonal;
+		case ChangeChannelVolumeChannels.StreamPersonalChat:
+			return globalSettings.streamChatPersonal;
+		case ChangeChannelVolumeChannels.StreamPersonalMedia:
+			return globalSettings.streamMediaPersonal;
+		case ChangeChannelVolumeChannels.StreamPersonalAux:
+			return globalSettings.streamAuxPersonal;
+		case ChangeChannelVolumeChannels.StreamPersonalMic:
+			return globalSettings.streamMicPersonal;
+		case ChangeChannelVolumeChannels.StreamBroadcastMaster:
+			return globalSettings.streamMasterBroadcast;
+		case ChangeChannelVolumeChannels.StreamBroadcastGame:
+			return globalSettings.streamGameBroadcast;
+		case ChangeChannelVolumeChannels.StreamBroadcastChat:
+			return globalSettings.streamChatBroadcast;
+		case ChangeChannelVolumeChannels.StreamBroadcastMedia:
+			return globalSettings.streamMediaBroadcast;
+		case ChangeChannelVolumeChannels.StreamBroadcastAux:
+			return globalSettings.streamAuxBroadcast;
+		case ChangeChannelVolumeChannels.StreamBroadcastMic:
+			return globalSettings.streamMicBroadcast;
 		default:
 			throw logErrorAndThrow(logger, `Unknown target channel from global settings: ${targetChannel}`);
 	}
 }
 
 export function updateAudioDeviceGlobalSettings(
-		globalSettings: GlobalSettings,
-		targetChannel: ChangeChannelVolumeChannels,
-		updatedVolume: number) {
-		const globalSettingsChannel = getChannelFromGlobalSettings(globalSettings, targetChannel);
-		globalSettingsChannel.volume = updatedVolume;
-	}
+	globalSettings: GlobalSettings,
+	targetChannel: ChangeChannelVolumeChannels,
+	updatedVolume: number) {
+	const globalSettingsChannel = getChannelFromGlobalSettings(globalSettings, targetChannel);
+	globalSettingsChannel.volume = updatedVolume;
+}
 
 export type BaseChangeChannelVolumeSettings = {
 	targetChannel: ChangeChannelVolumeChannels,
@@ -66,6 +106,18 @@ export enum ChangeChannelVolumeChannels {
 	ClassicMedia = "classic-media",
 	ClassicAux = "classic-aux",
 	ClassicMic = "classic-mic",
+	StreamPersonalGame = "stream-game-personal",
+	StreamPersonalChat = "stream-chat-personal",
+	StreamPersonalMaster = "stream-master-personal",
+	StreamPersonalMedia = "stream-media-personal",
+	StreamPersonalAux = "stream-aux-personal",
+	StreamPersonalMic = "stream-mic-personal",
+	StreamBroadcastGame = "stream-game-broadcast",
+	StreamBroadcastChat = "stream-chat-broadcast",
+	StreamBroadcastMaster = "stream-master-broadcast",
+	StreamBroadcastMedia = "stream-media-broadcast",
+	StreamBroadcastAux = "stream-aux-broadcast",
+	StreamBroadcastMic = "stream-mic-broadcast",
 }
 
 export const ClassicVolumeSettingsEnumMap = new Map<ChangeChannelVolumeChannels, DeviceRole>([
@@ -74,6 +126,16 @@ export const ClassicVolumeSettingsEnumMap = new Map<ChangeChannelVolumeChannels,
 	[ChangeChannelVolumeChannels.ClassicMedia, DeviceRole.Media],
 	[ChangeChannelVolumeChannels.ClassicAux, DeviceRole.Aux],
 	[ChangeChannelVolumeChannels.ClassicMic, DeviceRole.Microphone],
+	[ChangeChannelVolumeChannels.StreamPersonalGame, DeviceRole.Game],
+	[ChangeChannelVolumeChannels.StreamPersonalChat, DeviceRole.Chat],
+	[ChangeChannelVolumeChannels.StreamPersonalMedia, DeviceRole.Media],
+	[ChangeChannelVolumeChannels.StreamPersonalAux, DeviceRole.Aux],
+	[ChangeChannelVolumeChannels.StreamPersonalMic, DeviceRole.Microphone],
+	[ChangeChannelVolumeChannels.StreamBroadcastGame, DeviceRole.Game],
+	[ChangeChannelVolumeChannels.StreamBroadcastChat, DeviceRole.Chat],
+	[ChangeChannelVolumeChannels.StreamBroadcastMedia, DeviceRole.Media],
+	[ChangeChannelVolumeChannels.StreamBroadcastAux, DeviceRole.Aux],
+	[ChangeChannelVolumeChannels.StreamBroadcastMic, DeviceRole.Microphone],
 ]);
 
 export const VolumeChannelTranslations = new Map<ChangeChannelVolumeChannels, string>([
@@ -83,4 +145,16 @@ export const VolumeChannelTranslations = new Map<ChangeChannelVolumeChannels, st
 	[ChangeChannelVolumeChannels.ClassicMedia, "Media"],
 	[ChangeChannelVolumeChannels.ClassicAux, "Aux"],
 	[ChangeChannelVolumeChannels.ClassicMic, "Mic"],
+	[ChangeChannelVolumeChannels.StreamPersonalMaster, "Master Personal"],
+	[ChangeChannelVolumeChannels.StreamPersonalGame, "Game Personal"],
+	[ChangeChannelVolumeChannels.StreamPersonalChat, "Chat Personal"],
+	[ChangeChannelVolumeChannels.StreamPersonalMedia, "Media Personal"],
+	[ChangeChannelVolumeChannels.StreamPersonalAux, "Aux Personal"],
+	[ChangeChannelVolumeChannels.StreamPersonalMic, "Mic Personal"],
+	[ChangeChannelVolumeChannels.StreamBroadcastMaster, "Master StreamMix"],
+	[ChangeChannelVolumeChannels.StreamBroadcastGame, "Game StreamMix"],
+	[ChangeChannelVolumeChannels.StreamBroadcastChat, "Chat StreamMix"],
+	[ChangeChannelVolumeChannels.StreamBroadcastMedia, "Media StreamMix"],
+	[ChangeChannelVolumeChannels.StreamBroadcastAux, "Aux StreamMix"],
+	[ChangeChannelVolumeChannels.StreamBroadcastMic, "Mic StreamMix"],
 ]);
