@@ -40,6 +40,11 @@ export enum DeviceRole {
     Aux = "aux",
 }
 
+export enum StreamDeviceRole {
+    Monitoring = "monitoring",
+    Streaming = "streaming", 
+}
+
 // 0, 4 are Unknown.
 export enum ClassicVolumeChannelRoleInt {
     Game = 2,
@@ -93,7 +98,7 @@ export type VolumeSettingsDevice = {
 };
 
 export type VolumeSettingsChannel = {
-  stream: Record<string, VolumeSettingsDevice>;
+  stream: Record<StreamDeviceRole, VolumeSettingsDevice>;
   classic: VolumeSettingsDevice;
 };
 

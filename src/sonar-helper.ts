@@ -23,6 +23,7 @@ export async function getCurrentSonarSettingsAsync(): Promise<GlobalSettings> {
     const streamMicDevice = allInputDevices.find(x => x.id == streamRedirections.find((x) => x.streamRedirectionId == StreamRedirectionEnum.Microphone)?.deviceId);
 
     const classicVolumeSettings = await sonarClient.getClassicVolumeSettingsAsync();
+    const streamVolumeSettings = await sonarClient.getStreamVolumeSettingsAsync();
 
     const globalSettings: GlobalSettings = {
         sonarMode: mode,
@@ -80,6 +81,78 @@ export async function getCurrentSonarSettingsAsync(): Promise<GlobalSettings> {
             deviceName: streamMixDevice?.friendlyName ?? 'Unknown',
             volume: 0,
             muted: false,
+        },
+        streamMasterPersonal: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.masters?.stream?.monitoring?.volume ?? 0  ,
+            muted: streamVolumeSettings?.masters?.stream?.monitoring?.muted ?? false
+        },
+        streamMasterBroadcast: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.masters?.stream?.streaming?.volume ?? 0  ,
+            muted: streamVolumeSettings?.masters?.stream?.streaming?.muted ?? false
+        },
+        streamGamePersonal: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Game]?.stream?.monitoring?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Game]?.stream?.monitoring?.muted ?? false
+        },
+        streamGameBroadcast: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Game]?.stream?.streaming?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Game]?.stream?.streaming?.muted ?? false
+        },
+        streamChatPersonal: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Chat]?.stream?.monitoring?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Chat]?.stream?.monitoring?.muted ?? false
+        },
+        streamChatBroadcast: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Chat]?.stream?.streaming?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Chat]?.stream?.streaming?.muted ?? false
+        },
+        streamMediaPersonal: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Media]?.stream?.monitoring?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Media]?.stream?.monitoring?.muted ?? false
+        },
+        streamMediaBroadcast: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Media]?.stream?.streaming?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Media]?.stream?.streaming?.muted ?? false
+        },
+        streamAuxPersonal: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Aux]?.stream?.monitoring?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Aux]?.stream?.monitoring?.muted ?? false
+        },
+        streamAuxBroadcast: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Aux]?.stream?.streaming?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Aux]?.stream?.streaming?.muted ?? false
+        },
+        streamMicPersonal: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Microphone]?.stream?.monitoring?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Microphone]?.stream?.monitoring?.muted ?? false
+        },
+        streamMicBroadcast: {
+            deviceName: 'N/A',
+            deviceId: 'N/A',
+            volume: streamVolumeSettings?.devices[DeviceRole.Microphone]?.stream?.streaming?.volume ?? 0  ,
+            muted: streamVolumeSettings?.devices[DeviceRole.Microphone]?.stream?.streaming?.muted ?? false
         }
     };
 

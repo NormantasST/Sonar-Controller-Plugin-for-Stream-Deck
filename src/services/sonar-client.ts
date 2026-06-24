@@ -65,6 +65,10 @@ class SonarClient {
 		return this.doHttpRequestAsync<VolumeSettings>(`/VolumeSettings/classic`, "GET");
     }
 
+    public getStreamVolumeSettingsAsync(): Promise<VolumeSettings> {
+		return this.doHttpRequestAsync<VolumeSettings>(`/VolumeSettings/streamer`, "GET");
+    }
+
     public setClassicMasterVolumeAsync(updatedVolume: number): Promise<void> {
 		return this.doHttpRequestAsync(`/VolumeSettings/classic/Master/Volume/${updatedVolume}`, "PUT");
 	}
