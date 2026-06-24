@@ -47,12 +47,12 @@ export function getChannelFromGlobalSettings(globalSettings: GlobalSettings, tar
 }
 
 export function updateAudioDeviceGlobalSettings(
-		globalSettings: GlobalSettings,
-		targetChannel: ChangeChannelVolumeChannels,
-		updatedVolume: number) {
-		const globalSettingsChannel = getChannelFromGlobalSettings(globalSettings, targetChannel);
-		globalSettingsChannel.volume = updatedVolume;
-	}
+	globalSettings: GlobalSettings,
+	targetChannel: ChangeChannelVolumeChannels,
+	updatedVolume: number) {
+	const globalSettingsChannel = getChannelFromGlobalSettings(globalSettings, targetChannel);
+	globalSettingsChannel.volume = updatedVolume;
+}
 
 export type BaseChangeChannelVolumeSettings = {
 	targetChannel: ChangeChannelVolumeChannels,
@@ -66,6 +66,18 @@ export enum ChangeChannelVolumeChannels {
 	ClassicMedia = "classic-media",
 	ClassicAux = "classic-aux",
 	ClassicMic = "classic-mic",
+	StreamPersonalGame = "stream-game-personal",
+	StreamPersonalChat = "stream-chat-personal",
+	StreamPersonalMaster = "stream-master-personal",
+	StreamPersonalMedia = "stream-media-personal",
+	StreamPersonalAux = "stream-aux-personal",
+	StreamPersonalMic = "stream-mic-personal",
+	StreamBroadcastGame = "stream-game-broadcast",
+	StreamBroadcastChat = "stream-chat-broadcast",
+	StreamBroadcastMaster = "stream-master-broadcast",
+	StreamBroadcastMedia = "stream-media-broadcast",
+	StreamBroadcastAux = "stream-aux-broadcast",
+	StreamBroadcastMic = "stream-mic-broadcast",
 }
 
 export const ClassicVolumeSettingsEnumMap = new Map<ChangeChannelVolumeChannels, DeviceRole>([
@@ -83,4 +95,16 @@ export const VolumeChannelTranslations = new Map<ChangeChannelVolumeChannels, st
 	[ChangeChannelVolumeChannels.ClassicMedia, "Media"],
 	[ChangeChannelVolumeChannels.ClassicAux, "Aux"],
 	[ChangeChannelVolumeChannels.ClassicMic, "Mic"],
+	[ChangeChannelVolumeChannels.StreamPersonalMaster, "Master (Personal)"],
+	[ChangeChannelVolumeChannels.StreamPersonalGame, "Game (Personal)"],
+	[ChangeChannelVolumeChannels.StreamPersonalChat, "Chat (Personal)"],
+	[ChangeChannelVolumeChannels.StreamPersonalMedia, "Media (Personal)"],
+	[ChangeChannelVolumeChannels.StreamPersonalAux, "Aux (Personal)"],
+	[ChangeChannelVolumeChannels.StreamPersonalMic, "Mic (Personal)"],
+	[ChangeChannelVolumeChannels.StreamBroadcastMaster, "Master (StreamMix)"],
+	[ChangeChannelVolumeChannels.StreamBroadcastGame, "Game (StreamMix)"],
+	[ChangeChannelVolumeChannels.StreamBroadcastChat, "Chat (StreamMix)"],
+	[ChangeChannelVolumeChannels.StreamBroadcastMedia, "Media (StreamMix)"],
+	[ChangeChannelVolumeChannels.StreamBroadcastAux, "Aux (StreamMix)"],
+	[ChangeChannelVolumeChannels.StreamBroadcastMic, "Mic (StreamMix)"],
 ]);
