@@ -1,6 +1,6 @@
 {
 	"Name": "Sonar Controller",
-	"Version": "1.7.0.0",
+	"Version": "1.8.0.0",
 	"Author": "NOVIL, Normantas Stankevičius",
 	"Actions": [
 		{
@@ -63,7 +63,8 @@
 			"Encoder": {
 				"layout": "$B1",
 				"TriggerDescription": {
-					"Rotate": "Adjust Volume"
+					"Rotate": "Adjust Volume",
+					"Touch": "Mute/Unmute Audio Channel"
 				}
 			},
 			"States": [
