@@ -2,10 +2,11 @@ import type { DialRotateEvent, DidReceiveSettingsEvent, WillAppearEvent } from "
 import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
 import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
 import type { GlobalSettings } from "../models/types/global-settings.type";
-import { ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER } from "../constants/action-uuids.constants";
+import { ACTION_MUTE_CHANNEL, ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER } from "../constants/action-uuids.constants";
 import type { BaseChangeChannelVolumeSettings} from "./change-channel-volume";
 import { getChannelFromGlobalSettings, initializeBase, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
 import { ActionChangeChannelVolume } from "./change-channel-volume.action";
+import { ActionMuteChannel } from "./mute-channel";
 
 const logger = streamDeck.logger.createScope("output-volume-mixer-dial");
 
@@ -37,6 +38,8 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 					return DialChangeChannelVolume.updateThisActionAsync(action);
 				case ACTION_VOLUME_MIXER:
 					return ActionChangeChannelVolume.updateThisActionAsync(action);
+				case ACTION_MUTE_CHANNEL:
+					return ActionMuteChannel.updateThisActionAsync(action);
 			}
 		}));
 	}
