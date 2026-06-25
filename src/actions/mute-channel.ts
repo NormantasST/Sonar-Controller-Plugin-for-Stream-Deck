@@ -8,6 +8,7 @@ import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
 import { DeviceRole, StreamDeviceRole } from "../models/types/sonar-models.type"
 import { wrapText } from "../helpers/plugin-helper";
+import { DialChangeChannelVolume } from "./change-channel-volume.dial";
 
 const logger = streamDeck.logger.createScope("mute-channel");
 

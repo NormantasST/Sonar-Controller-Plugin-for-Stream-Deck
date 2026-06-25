@@ -72,7 +72,7 @@ export class DialChatMixController extends SingletonAction<BaseChatMixController
 	}
 
 	public override async onTouchTap(ev: TouchTapEvent): Promise<void> {
-		logger.info(`Dial Rotate with settings: ${JSON.stringify(ev)}`);
+		logger.info(`Dial Touch with settings: ${JSON.stringify(ev)}`);
 
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
