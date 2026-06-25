@@ -37,7 +37,8 @@ This project is free to use for personal and commercial use. It would be nice to
     - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
     - **Stream:** Same as Classic Except supports also Personal OR StreaMix (Broadcast) versions.
 - **Dial**:
-  - Supports Changing Volume.
+  - **Rotate** - Supports Changing Volume.
+  - **Tap** - Mutes / Unmutes channel.
 
 ### Mute Channel
 

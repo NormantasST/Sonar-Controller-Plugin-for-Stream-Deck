@@ -2,31 +2,34 @@ import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@el
 import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
 import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
 import type { GlobalSettings } from "../models/types/global-settings.type";
-import { MUTE_CHANNEL } from "../constants/action-uuids.constants";
+import { ACTION_MUTE_CHANNEL, DIAL_VOLUME_MIXER } from "../constants/action-uuids.constants";
 import type { DeviceData } from "../models/types/device-data.type";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
 import { DeviceRole, StreamDeviceRole } from "../models/types/sonar-models.type"
 import { wrapText } from "../helpers/plugin-helper";
+import { DialChangeChannelVolume } from "./change-channel-volume.dial";
 
 const logger = streamDeck.logger.createScope("mute-channel");
 
-@action({ UUID: MUTE_CHANNEL })
-export class MuteChannel extends SingletonAction<MuteChannelSettings> implements INotifyableAction {
+@action({ UUID: ACTION_MUTE_CHANNEL })
+export class ActionMuteChannel extends SingletonAction<MuteChannelSettings> implements INotifyableAction {
 	public static async updateThisActionAsync(action: any): Promise<void> {
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 		const localSettings = await action.getSettings() as MuteChannelSettings;
 
-		await action.setTitle(MuteChannel.generateTitle(globalSettings, localSettings));
-		await action.setImage(MuteChannel.getImagePath(globalSettings, localSettings));
+		await action.setTitle(ActionMuteChannel.generateTitle(globalSettings, localSettings));
+		await action.setImage(ActionMuteChannel.getImagePath(globalSettings, localSettings));
 	}
 
 	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
 		await streamDeck.settings.setGlobalSettings(globalSettings);
 		await Promise.all(streamDeck.actions.map(async (action) => {
 			switch (action.manifestId) {
-				case MUTE_CHANNEL:
-					return MuteChannel.updateThisActionAsync(action);
+				case ACTION_MUTE_CHANNEL:
+					return ActionMuteChannel.updateThisActionAsync(action);
+				case DIAL_VOLUME_MIXER:
+					return DialChangeChannelVolume.updateThisActionAsync(action);
 			}
 		}));
 	}
@@ -38,28 +41,28 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 		settings.showTextComponents = settings.showTextComponents ?? ["channel", "status"];
 		await action.setSettings(settings);
 
-		await MuteChannel.updateThisActionAsync(action);
+		await ActionMuteChannel.updateThisActionAsync(action);
 	}
 
 	public override async onWillAppear(ev: WillAppearEvent<MuteChannelSettings>): Promise<void> {
-		await MuteChannel.initializeActionAsync(ev.action);
+		await ActionMuteChannel.initializeActionAsync(ev.action);
 	}
 
 	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<MuteChannelSettings> | any): Promise<void> {
 		if (ev.id === undefined)
-			await MuteChannel.updateThisActionAsync(ev.action);
+			await ActionMuteChannel.updateThisActionAsync(ev.action);
 	}
 
 	public override async onKeyDown(ev: KeyDownEvent<MuteChannelSettings>): Promise<void> {
 		const localSettings = await ev.action.getSettings() as MuteChannelSettings;
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
-		const currentChannel = MuteChannel.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
+		const currentChannel = ActionMuteChannel.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 		const newMuteState = !currentChannel.muted;
 
-		await MuteChannel.updateMuteAsync(localSettings.targetChannel, newMuteState);
+		await ActionMuteChannel.updateMuteAsync(localSettings.targetChannel, newMuteState);
 
-		MuteChannel.updateChannelGlobalSettings(globalSettings, localSettings.targetChannel, newMuteState);
+		ActionMuteChannel.updateChannelGlobalSettings(globalSettings, localSettings.targetChannel, newMuteState);
 		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
@@ -148,7 +151,7 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 	}
 
 	private static generateTitle(globalSettings: GlobalSettings, localSettings: MuteChannelSettings): string {
-		const currentChannel = MuteChannel.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
+		const currentChannel = ActionMuteChannel.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 
 		const simplifiedChannelName = MuteChannelTranslations.get(localSettings.targetChannel) ?? localSettings.targetChannel;
 		const muteStatus = currentChannel.muted ? "Muted" : "Unmuted";
@@ -165,7 +168,7 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 
 	private static getImagePath(globalSettings: GlobalSettings, localSettings: MuteChannelSettings): string {
 		const basePath = `imgs/actions/mute-channel/`;
-		const currentChannel = MuteChannel.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
+		const currentChannel = ActionMuteChannel.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 
 		if (currentChannel.muted)
 			return basePath + "key-muted";
@@ -175,7 +178,7 @@ export class MuteChannel extends SingletonAction<MuteChannelSettings> implements
 }
 
 /**
- * Settings for {@link MuteChannel}.
+ * Settings for {@link ActionMuteChannel}.
  */
 type MuteChannelSettings = {
 	targetChannel: MuteChannels

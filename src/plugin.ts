@@ -2,7 +2,7 @@ import streamDeck from '@elgato/streamdeck';
 
 import { RotateMicrophoneDevice } from "./actions/rotate-michrophone-device";
 import { RotateOutputAudioDevice } from "./actions/rotate-audio-output-device";
-import { MuteChannel } from './actions/mute-channel';
+import { ActionMuteChannel } from './actions/mute-channel';
 import { initializeGlobalSettingsAsync } from './helpers/initialization-helper';
 import { DialChangeChannelVolume } from './actions/change-channel-volume.dial';
 import { ActionChangeChannelVolume } from './actions/change-channel-volume.action';
@@ -20,7 +20,7 @@ streamDeck.actions.registerAction(new ActionChangeChannelVolume());
 streamDeck.actions.registerAction(new DialChangeChannelVolume());
 streamDeck.actions.registerAction(new ActionChatMixController());
 streamDeck.actions.registerAction(new DialChatMixController());
-streamDeck.actions.registerAction(new MuteChannel());
+streamDeck.actions.registerAction(new ActionMuteChannel());
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 streamDeck.connect();
