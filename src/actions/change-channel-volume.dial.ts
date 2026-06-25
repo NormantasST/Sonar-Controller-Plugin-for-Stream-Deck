@@ -104,7 +104,12 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 	}
 
 	private static generateTitle(globalSettings: GlobalSettings, localSettings: BaseChangeChannelVolumeSettings): any {
-		return VolumeChannelTranslations.get(localSettings.targetChannel) ?? localSettings.targetChannel;
+		const channelName = VolumeChannelTranslations.get(localSettings.targetChannel) ?? localSettings.targetChannel;
+		
+		const channelData = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
+		const isMutedText = channelData.muted ? " (M)" : "";
+
+		return `${channelName} ${isMutedText}`.trim();
 	}
 
 	private static updateMuteAsync(targetChannel: ChangeChannelVolumeChannels, newMuteState: boolean): Promise<void> {
