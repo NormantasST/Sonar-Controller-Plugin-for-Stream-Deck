@@ -23,9 +23,9 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 
 		if (action.isDial()){
 			const currentChanel = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
-			
 			logger.info(`Updating dial feedback with volume: ${currentChanel.volume}`);
 			await action.setFeedback({
+				icon: DialChangeChannelVolume.getIcon(globalSettings, localSettings),
 				indicator: {
 					value: currentChanel.volume * 100,
 				},
@@ -101,6 +101,16 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 
 	private static calculateUpdatedVolume(currentVolume: number, ticks: number, changeValue: number): number{
 		return Math.min(Math.max(currentVolume += (ticks * changeValue) / 100, 0), 1);
+	}
+
+	private static getIcon(globalSettings: GlobalSettings, localSettings: BaseChangeChannelVolumeSettings) {
+		const channelData = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
+		const basePath = `imgs/actions/change-channel-volume/`;
+		
+		if (channelData.muted) 
+			return `${basePath}icon-muted`;
+		
+		return `${basePath}icon`;
 	}
 
 	private static generateTitle(globalSettings: GlobalSettings, localSettings: BaseChangeChannelVolumeSettings): any {
