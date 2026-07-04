@@ -3,7 +3,7 @@ import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import type { Response } from "node-fetch";
 import fetch from "node-fetch";
-import type { AudioDevice, ChatMixResponse, ClassicRedirection, DeviceRole, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamDeviceRole, StreamRedirection, StreamRedirectionEnum, VolumeSettings } from '../models/types/sonar-models.type';
+import type { AudioDevice, ChatMixResponse, ClassicRedirection, ConfigResponse, DeviceRole, FallbackSetting, FallbackSettings, RedirectionEnum, SonarMode, StreamDeviceRole, StreamRedirection, StreamRedirectionEnum, VolumeSettings } from '../models/types/sonar-models.type';
 import { logErrorAndThrow } from '../helpers/streamdeck-logger-helper';
 import { VolumeSettingsRoleEnumMap, RedirectionEnumMap, StreamRedirectionEnumMap, StreamerVolumeSettingsSubChannelEnumMap } from '../models/converters/sonar-model-converts';
 
@@ -116,6 +116,18 @@ class SonarClient {
         const streamDeviceRoleValue = StreamerVolumeSettingsSubChannelEnumMap.get(streamDeviceRole);
 		return this.doHttpRequestAsync(`/VolumeSettings/streamer/${streamDeviceRoleValue}/${channel}/isMuted/${isMuted}`, "PUT");
 	}
+    
+    public getCurrentConfigAsync(): Promise<ConfigResponse[]> {
+        return this.doHttpRequestAsync<ConfigResponse[]>("/Configs/selected", "GET");
+    }
+
+    public getConfigsAsync(): Promise<ConfigResponse[]> {
+        return this.doHttpRequestAsync<ConfigResponse[]>(`/Configs`, "GET");
+    }
+
+    public selectConfigAsync(profileId: string): Promise<ConfigResponse[]> {
+        return this.doHttpRequestAsync<ConfigResponse[]>(`/Configs/${profileId}/select`, "PUT");
+    }
 
     private async getAllAvailableFallbackAudioDevicesAsync(channel: keyof FallbackSettings): Promise<FallbackSetting[]> {
         const response = await this.doHttpRequestAsync<FallbackSettings>("/FallbackSettings/lists", "GET");
@@ -134,7 +146,12 @@ class SonarClient {
 
         try {
             logger.info(`Doing Request: ${method} ${uri} with body: ${JSON.stringify(body)}`);
+            const performanceStart = performance.now();
             response = await fetch(uri, requestBody);
+            const performanceEnd = performance.now();
+            
+            const duration = Math.round(performanceEnd - performanceStart);
+            logger.info(`Finished Request: ${method} ${uri} ${duration}ms`);
         } catch (error: any) {
             // Sonar URL is not static and can change after requests.
             // We Retry in case of URL has changed or not found.

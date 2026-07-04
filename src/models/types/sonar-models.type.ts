@@ -121,3 +121,10 @@ export type ChatMixResponse = {
     balance: number;
     state: number;
 };
+
+export type ConfigResponse = {
+    id: string;
+    name: string;
+    virtualAudioDevice: DeviceRole;
+    isPreset: boolean;
+}

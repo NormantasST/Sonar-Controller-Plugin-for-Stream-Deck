@@ -128,6 +128,22 @@
 					"TitleAlignment": "middle"
 				}
 			]
+		},
+		{
+			"Name": "Set Channel Profile To",
+			"UUID": "com.novil.steelseriessonar-by-novil.set-channel-profile-to-v1",
+			"Icon": "imgs/actions/set-channel-profile-to/icon",
+			"Tooltip": "Set Channel Profile To",
+			"PropertyInspectorPath": "ui/set-channel-profile-to.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/set-channel-profile-to/key",
+					"TitleAlignment": "middle"
+				}
+			]
 		}
 	],
 	"Category": "Sonar Controller",
