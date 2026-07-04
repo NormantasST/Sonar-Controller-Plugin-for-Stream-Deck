@@ -19,11 +19,15 @@ This project is free to use for personal and commercial use. It would be nice to
 
 ### Rotate Audio Output
 
+Rotates audio output device in carousel fashion.
+
 - **Rotates your current output device**: `All (Auto Detect)` (default), `All (Classic Only)`, `Game`, `Chat`, `Media`, `Aux`, `All (Streaming Only)`, `Personal Mix`, `Stream Mix`.
 - Set Sonar Title Max Length: Allows to control the titles' length which is auto-generated from Sonar. If value is set to 0 it will show the whole title.
 - User can select if they want to include or exclude `Excluded Devices`.
 
 ### Rotate Microphone Output
+
+Rotates microphone output device. in carousel fashion.
 
 - **Rotates your current microphone device**: `Auto-Detect` (default), `Classic-Only`, `Stream-Only`.
 - Set Sonar Title Max Length: Allows to control the titles' length which is auto-generated from Sonar. If value is set to 0 it will show the whole title.
@@ -31,21 +35,28 @@ This project is free to use for personal and commercial use. It would be nice to
 
 ### Volume Mixer
 
+Allows to control the volume of channels.
+
 - **Action**:
   - **Modes:**: `Increase Volume By %`, `Decrease Volume By %`, `Set Volume To %`.
   - **Channels:**:
     - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
-    - **Stream:** Same as Classic Except supports also Personal OR StreaMix (Broadcast) versions.
+    - **Stream:** Same as Classic Except supports also Personal OR StreamMix (Broadcast) versions.
 - **Dial**:
   - **Rotate** - Supports Changing Volume.
   - **Tap** - Mutes / Unmutes channel.
 
 ### Mute Channel
 
+Mutes / Un-mutes selected channels.
+
 - **Channels:**:
   - **Classic:** `Master` (default), `Game`, `Chat`, `Media`, `Aux`, `Microphone`.
-  - **Stream:** Same as Classic Except supports also Personal OR StreaMix (Broadcast) versions.
+  - **Stream:** Same as Classic Except supports also Personal OR StreamMix (Broadcast) versions.
+
 ### Chat Mix Controller
+
+Controls ChatMix.
 
 - **Action**
   - **Channels:**: `Game`, `Chat`.
@@ -53,6 +64,15 @@ This project is free to use for personal and commercial use. It would be nice to
 - **Dial**
   - **Rotate** - Adjusts Balance.
   - **Tap** - Resets Balance to 0.
+
+### Set Channel Profile To
+
+Allows to update current profile for channel to selected profile.
+
+- **Action**
+  - **Channel Selector:** `Game`, `Chat`, `Media`, `Aux`, `Mic`.
+  - **Profiles Selector:** Custom & Preset Profiles.
+
 
 ## Basic Setup
 

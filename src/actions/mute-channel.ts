@@ -68,7 +68,7 @@ export class ActionMuteChannel extends SingletonAction<MuteChannelSettings> impl
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
-	private static getChannelFromGlobalSettings(globalSettings: GlobalSettings, targetChannel: MuteChannels): DeviceData {
+	private static getChannelFromGlobalSettings(globalSettings: GlobalSettings, targetChannel: MuteChannels): ChannelData {
 		switch (targetChannel) {
 			case MuteChannels.ClassicMaster:
 				return globalSettings.masterChannel;

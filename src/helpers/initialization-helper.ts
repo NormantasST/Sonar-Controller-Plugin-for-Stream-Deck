@@ -1,13 +1,14 @@
 import streamDeck from "@elgato/streamdeck";
 import { RotateMicrophoneDevice } from "../actions/rotate-michrophone-device";
 import { RotateOutputAudioDevice } from "../actions/rotate-audio-output-device";
-import { ACTION_CHAT_MIX_CONTROLLER, ACTION_MUTE_CHANNEL, ROTATE_MICROPHONE_DEVICE, ROTATE_OUTPUT_DEVICES, ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER, DIAL_CHAT_MIX_CONTROLLER } from "../constants/action-uuids.constants";
+import { ACTION_CHAT_MIX_CONTROLLER, ACTION_MUTE_CHANNEL, ROTATE_MICROPHONE_DEVICE, ROTATE_OUTPUT_DEVICES, ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER, DIAL_CHAT_MIX_CONTROLLER, ACTION_SET_CHANNEL_PROFILE_TO } from "../constants/action-uuids.constants";
 import { getCurrentSonarSettingsAsync } from "../sonar-helper";
 import { ActionMuteChannel } from "../actions/mute-channel";
 import { DialChangeChannelVolume } from "../actions/change-channel-volume.dial";
 import { ActionChangeChannelVolume } from "../actions/change-channel-volume.action";
 import { DialChatMixController } from "../actions/chat-mix-controller.action.dial";
 import { ActionChatMixController } from "../actions/chat-mix-controller.action";
+import { ActionSetChannelProfileTo } from "../actions/set-channel-profile-to";
 
 export async function initializeGlobalSettingsAsync() {
     const globalSettings = await getCurrentSonarSettingsAsync();
@@ -17,7 +18,7 @@ export async function initializeGlobalSettingsAsync() {
 
     setInterval(async () => {
         const globalSettings = await getCurrentSonarSettingsAsync();
-        // Functions weird during Streamdeeck setup. Stops working.
+        // Functions weird during Streamdeck setup. Stops working.
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         streamDeck.settings.setGlobalSettings(globalSettings);
         await notifyAllAsync();
@@ -41,6 +42,8 @@ export async function notifyAllAsync() {
                 return DialChatMixController.updateThisActionAsync(action);
             case ACTION_MUTE_CHANNEL:
                 return ActionMuteChannel.updateThisActionAsync(action);
+            case ACTION_SET_CHANNEL_PROFILE_TO:
+                return ActionSetChannelProfileTo.updateThisActionAsync(action);
         }
     }));
 }

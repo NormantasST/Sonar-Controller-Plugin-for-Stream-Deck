@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title>Profile Select To</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+
+<body>
+    <!--
+        Learn more about property inspector components at https://sdpi-components.dev/docs/components
+    -->
+    <sdpi-item label="Channel Selector">
+        <sdpi-select setting="targetChannel" default="game" placeholder="Please Choose a Channel">
+            <option value="game">Game</option>
+            <option value="chat">Chat</option>
+            <option value="media">Media</option>
+            <option value="aux">Aux</option>
+            <option value="mic">Mic</option>
+        </sdpi-select>
+    </sdpi-item>
+
+    <sdpi-item label="Profile Selector">
+        <sdpi-select
+            setting="targetProfileId"
+            dataSource="getProfiles"
+            loading="Fetching Profiles..."
+            placeholder="Please Choose a Profile"
+        />
+    </sdpi-item>
+
+    <div style="text-align: center; display: inline; font-size: smaller">
+        <p style="color: lightgray">
+            Donate to this Free Project on
+            <a style="color: lightblue;" target="_blank" href="https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6">PayPal</a>
+        </p>
+    </div>
+
+</body>
+
+</html>
