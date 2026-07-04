@@ -31,10 +31,16 @@
         <sdpi-checkbox setting="allowExcludedDevices" label="Will use excluded devices" default="false"></sdpi-checkbox>
     </sdpi-item>
 
+    <script>
+        const openPaypalDonation = async () => {
+            const payload = { url: 'https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6' };
+            await SDPIComponents.streamDeckClient.send('openUrl', payload);
+        }
+    </script>
     <div style="text-align: center; display: inline; font-size: smaller">
         <p style="color: lightgray">
             Donate to this Free Project on
-            <a style="color: lightblue;" target="_blank" href="https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6">PayPal</a>
+            <span style="color: lightblue; cursor: pointer; display: inline" href="https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6" onclick="openPaypalDonation()">PayPal</span>
         </p>
     </div>
 
