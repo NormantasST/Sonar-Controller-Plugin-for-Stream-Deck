@@ -6,3 +6,4 @@ export const ACTION_CHAT_MIX_CONTROLLER = "com.novil.steelseriessonar-by-novil.c
 export const DIAL_CHAT_MIX_CONTROLLER = "com.novil.steelseriessonar-by-novil.chat-mix-controller-dial-v1"; 
 export const ACTION_MUTE_CHANNEL = "com.novil.steelseriessonar-by-novil.mute-channel-v1";
 export const ACTION_SET_CHANNEL_PROFILE_TO = "com.novil.steelseriessonar-by-novil.set-channel-profile-to-v1";
+export const ACTION_SET_OUTPUT_DEVICE_TO = "com.novil.steelseriessonar-by-novil.set-output-device-to-v1";
