@@ -11,7 +11,7 @@ import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { DeviceData } from "../models/types/device-data.type";
 import { wrapText } from "../helpers/plugin-helper";
 
-const logger = streamDeck.logger.createScope("set-profile-to");
+const logger = streamDeck.logger.createScope("set-output-device-to");
 
 @action({ UUID: ACTION_SET_OUTPUT_DEVICE_TO })
 export class ActionSetOutputDeviceTo extends SingletonAction<SetOutputDeviceToSettings> implements INotifyableAction {
@@ -99,8 +99,8 @@ export class ActionSetOutputDeviceTo extends SingletonAction<SetOutputDeviceToSe
 
 	private static async generateTitleAsync(localSettings: SetOutputDeviceToSettings): Promise<string> {
 		const channelName = SetOutputDeviceToChannelsTranslations.get(localSettings.setDeviceMode) ?? "Unknown";
-		const profileName = (await sonarClient.getAllAudioDevicesAsync()).find((x) => x.id == localSettings.targetedDeviceId)?.friendlyName ?? "Unknown";
-		return wrapText(`Set ${channelName}: ${profileName}`, 9, localSettings.maxTitleLength);	
+		const deviceName = (await sonarClient.getAllAudioDevicesAsync()).find((x) => x.id == localSettings.targetedDeviceId)?.friendlyName ?? "Unknown";
+		return wrapText(`Set ${channelName}: ${deviceName}`, 9, localSettings.maxTitleLength);	
 	}
 
 	private static getImagePath(globalSettings: GlobalSettings, localSettings: SetOutputDeviceToSettings): string {

@@ -1,6 +1,6 @@
 import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@elgato/streamdeck";
 import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import { ROTATE_MICROPHONE_DEVICE } from "../constants/action-uuids.constants";
+import { ACTION_SET_MICROPHONE_DEVICE_TO, ROTATE_MICROPHONE_DEVICE } from "../constants/action-uuids.constants";
 import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import sonarClient from "../services/sonar-client";
@@ -9,6 +9,7 @@ import { RedirectionEnum, SonarMode, StreamRedirectionEnum } from "../models/typ
 import { wrapText } from "../helpers/plugin-helper";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { DeviceData } from "../models/types/device-data.type";
+import { ActionSetMicrophoneDeviceTo } from "./set-microphone-device-to";
 
 const logger = streamDeck.logger.createScope("rotate-microphone");
 
@@ -27,6 +28,8 @@ export class RotateMicrophoneDevice extends SingletonAction<RotateMicrophoneSett
 			switch (action.manifestId) {
 				case ROTATE_MICROPHONE_DEVICE:
 					return RotateMicrophoneDevice.updateThisActionAsync(action);
+				case ACTION_SET_MICROPHONE_DEVICE_TO:
+					return ActionSetMicrophoneDeviceTo.updateThisActionAsync(action);
 			}
 		}));
 	}
