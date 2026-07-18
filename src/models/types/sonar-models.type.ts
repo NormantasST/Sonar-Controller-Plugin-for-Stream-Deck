@@ -3,6 +3,7 @@ export type AudioDevice = {
     friendlyName: string;
     dataFlow: DeviceDataFlow;
     role: DeviceRole;
+    isVad: boolean; // is it a sonar virtual audio device
 }
 
 export type ClassicRedirection = {

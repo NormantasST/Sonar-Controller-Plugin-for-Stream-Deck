@@ -1,6 +1,6 @@
 import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@elgato/streamdeck";
 import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import { ROTATE_OUTPUT_DEVICES } from "../constants/action-uuids.constants";
+import { ACTION_SET_OUTPUT_DEVICE_TO, ROTATE_OUTPUT_DEVICES } from "../constants/action-uuids.constants";
 import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import sonarClient from '.././services/sonar-client';
@@ -9,6 +9,7 @@ import { RedirectionEnum, SonarMode, StreamRedirectionEnum } from "../models/typ
 import { wrapText } from "../helpers/plugin-helper";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { DeviceData } from "../models/types/device-data.type";
+import { ActionSetOutputDeviceTo } from "./set-output-device-to";
 
 const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 
@@ -27,6 +28,8 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 			switch (action.manifestId) {
 				case ROTATE_OUTPUT_DEVICES:
 					return RotateOutputAudioDevice.updateThisActionAsync(action);
+				case ACTION_SET_OUTPUT_DEVICE_TO:
+					return ActionSetOutputDeviceTo.updateThisActionAsync(action);
 			}
 		}));
 	}
@@ -45,7 +48,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		const sonarMode = await sonarClient.getSonarModeAsync();
-		const allDevices = await sonarClient.getAllAudioDevicesAsync();
+		const allDevices = await sonarClient.getAllOutputAudioDevicesAsync();
 		const currentRenderDeviceId = await RotateOutputAudioDevice.getCurrentDeviceIdAsync(globalSettings, localSettings.rotationMode, sonarMode);
 
 		const availableDeviceIds = await RotateOutputAudioDevice.filterAvailableDevicesAsync(allDevices, localSettings.allowExcludedDevices ?? false);
@@ -68,7 +71,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 	}
 
 	private static async initializeActionAsync(action: any) {
-		// Auto Initialize Settings. Becase Streamdeck does not.
+		// Auto Initialize Settings. Because Streamdeck does not.
 		const settings = await action.getSettings();
 		settings.rotationMode = settings.rotationMode ?? RotationMode.AllAutoDetect;
 		settings.maxTitleLength = settings.maxTitleLength ?? 20;
@@ -78,7 +81,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 		await RotateOutputAudioDevice.updateThisActionAsync(action);
 	}
 
-	private static updateAudioDeviceGlobalSettings(
+	private static updateSingularAudioDeviceGlobalSettings(
 		globalSettings: GlobalSettings,
 		deviceId: string,
 		friendlyName: string,
@@ -91,6 +94,51 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 
 		channel!.deviceId = deviceId;
 		channel!.deviceName = friendlyName;
+	}
+
+	private static updateAudioDeviceGlobalSettings(
+		globalSettings: GlobalSettings,
+		deviceId: string,
+		friendlyName: string,
+		rotationMode: RotationMode,
+		sonarMode: SonarMode) {
+		switch (rotationMode) {
+			case RotationMode.Game:
+				RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Game, sonarMode);
+				break;
+			case RotationMode.Chat:
+				RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Chat, sonarMode);
+				break;
+			case RotationMode.Media:
+				RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Media, sonarMode);
+				break;
+			case RotationMode.Aux:
+				RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Aux, sonarMode);
+				break;
+			case RotationMode.PersonalMix:
+				RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.PersonalMix, sonarMode);
+				break;
+			case RotationMode.StreamMix:
+				RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.StreamMix, sonarMode);
+				break;
+			case RotationMode.AllAutoDetect:
+			case RotationMode.AllClassic:
+			case RotationMode.AllStreaming:
+				if (rotationMode == RotationMode.AllClassic ||
+					(sonarMode == SonarMode.Classic && rotationMode == RotationMode.AllAutoDetect)) {
+						RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Game, sonarMode);
+						RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Chat, sonarMode);
+						RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Media, sonarMode);
+						RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.Aux, sonarMode);
+				}
+
+				if (rotationMode == RotationMode.AllStreaming ||
+					(sonarMode == SonarMode.Streaming && rotationMode == RotationMode.AllAutoDetect)) {
+					RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.PersonalMix, sonarMode);
+					RotateOutputAudioDevice.updateSingularAudioDeviceGlobalSettings(globalSettings, deviceId, friendlyName, RotationMode.StreamMix, sonarMode);
+				}
+				break;
+		}
 	}
 
 	private static getCurrentChannel(

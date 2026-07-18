@@ -144,6 +144,22 @@
 					"TitleAlignment": "middle"
 				}
 			]
+		},
+		{
+			"Name": "Set Output Device To",
+			"UUID": "com.novil.steelseriessonar-by-novil.set-output-device-to-v1",
+			"Icon": "imgs/actions/set-output-device-to/icon",
+			"Tooltip": "Set Output Device To",
+			"PropertyInspectorPath": "ui/set-output-device-to.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/set-output-device-to/key",
+					"TitleAlignment": "middle"
+				}
+			]
 		}
 	],
 	"Category": "Sonar Controller",
