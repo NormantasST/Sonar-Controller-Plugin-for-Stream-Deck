@@ -76,8 +76,8 @@ export enum RedirectionIntEnum {
     Game = 1,
     Chat = 2,
     Microphone = 3,
-    Media = 7,
-    Aux = 8,
+    Media = 6,
+    Aux = 7,
 }
 
 export enum StreamRedirectionEnum {
