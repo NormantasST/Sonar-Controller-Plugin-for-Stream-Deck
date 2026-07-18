@@ -49,16 +49,20 @@ class SonarClient {
 
     public async getAllOutputAudioDevicesAsync(): Promise<AudioDevice[]> {
         const response = await this.getAllAudioDevicesAsync();
-        return response.filter((device) => device.role == "none" && device.dataFlow == "render");
+        return response.filter((device) => device.dataFlow == "render");
     }
 
     public async getAllInputAudioDevicesAsync(): Promise<AudioDevice[]> {
         const response = await this.getAllAudioDevicesAsync();
-        return response.filter((device) => device.role == "none" && device.dataFlow == "capture");
+        return response.filter((device) => device.dataFlow == "capture");
     }
 
-    public getAllAudioDevicesAsync(): Promise<AudioDevice[]> {
-        return this.doHttpRequestAsync<AudioDevice[]>("/AudioDevices", "GET");
+    public async getAllAudioDevicesAsync(filterSonarDevices = true): Promise<AudioDevice[]> {
+        const devices = await this.doHttpRequestAsync<AudioDevice[]>("/AudioDevices", "GET");
+        if (filterSonarDevices)
+            return devices.filter((device) => device.isVad === false);
+
+        return devices;
     }
 
     public getClassicVolumeSettingsAsync(): Promise<VolumeSettings> {

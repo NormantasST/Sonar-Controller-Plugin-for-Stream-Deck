@@ -12,7 +12,7 @@
         Learn more about property inspector components at https://sdpi-components.dev/docs/components
     -->
     <sdpi-item label="Channel Selection">
-        <sdpi-select setting="setDeviceMode" default="all-auto-detect" placeholder="Please choose a rotation mode">
+        <sdpi-select setting="setDeviceMode" default="all-auto-detect" placeholder="Please Channel">
             <option value="all-auto-detect">All (Auto Detect)</option>
             <optgroup label="Classic Mode">
                 <option value="all-classic">All (Classic Only)</option>
@@ -29,13 +29,24 @@
         </sdpi-select>
     </sdpi-item>
 
-    <sdpi-item label="Set To Device:">
+    <sdpi-item label="Set To Device">
         <sdpi-select
             setting="targetedDeviceId"
-            dataSource="getDevices"
+            dataSource="getOutputDevices"
             loading="Fetching Devices..."
             placeholder="Please Choose a Device"
         />
+    </sdpi-item>
+
+    <sdpi-item label="Sonar Max Title Length">
+        <sdpi-range
+            setting="maxTitleLength"
+            default="35"
+            min="0"
+            max="100" 
+            step="1"
+            showlabels>
+        </sdpi-range>
     </sdpi-item>
 
     <script>

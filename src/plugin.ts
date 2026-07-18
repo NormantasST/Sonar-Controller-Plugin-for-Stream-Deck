@@ -9,6 +9,7 @@ import { ActionChangeChannelVolume } from './actions/change-channel-volume.actio
 import { ActionChatMixController } from './actions/chat-mix-controller.action';
 import { DialChatMixController } from './actions/chat-mix-controller.action.dial';
 import { ActionSetChannelProfileTo } from './actions/set-channel-profile-to';
+import { ActionSetOutputDeviceTo } from './actions/set-output-device-to';
 
 streamDeck.logger.setLevel("trace");
 
@@ -23,6 +24,7 @@ streamDeck.actions.registerAction(new ActionChatMixController());
 streamDeck.actions.registerAction(new DialChatMixController());
 streamDeck.actions.registerAction(new ActionMuteChannel());
 streamDeck.actions.registerAction(new ActionSetChannelProfileTo());
+streamDeck.actions.registerAction(new ActionSetOutputDeviceTo());
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 streamDeck.connect();
