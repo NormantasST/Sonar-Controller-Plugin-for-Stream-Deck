@@ -99,7 +99,7 @@ export class ActionSetMicrophoneDeviceTo extends SingletonAction<SetMicrophoneDe
 
 	private static async generateTitleAsync(localSettings: SetMicrophoneDeviceToSettings): Promise<string> {
 		const deviceName = (await sonarClient.getAllAudioDevicesAsync()).find((x) => x.id == localSettings.targetedDeviceId)?.friendlyName ?? "Unknown";
-		return wrapText(`Set Microphone: ${deviceName}`, 9, localSettings.maxTitleLength);
+		return wrapText(`Set Mic: ${deviceName}`, 9, localSettings.maxTitleLength);
 	}
 
 	private static getImagePath(globalSettings: GlobalSettings, localSettings: SetMicrophoneDeviceToSettings): string {

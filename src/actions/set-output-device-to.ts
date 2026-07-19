@@ -100,7 +100,7 @@ export class ActionSetOutputDeviceTo extends SingletonAction<SetOutputDeviceToSe
 	private static async generateTitleAsync(localSettings: SetOutputDeviceToSettings): Promise<string> {
 		const channelName = SetOutputDeviceToChannelsTranslations.get(localSettings.setDeviceMode) ?? "Unknown";
 		const deviceName = (await sonarClient.getAllAudioDevicesAsync()).find((x) => x.id == localSettings.targetedDeviceId)?.friendlyName ?? "Unknown";
-		return wrapText(`Set ${channelName}: ${deviceName}`, 9, localSettings.maxTitleLength);	
+		return wrapText(`Set ${channelName}: ${deviceName}`, 11, localSettings.maxTitleLength);	
 	}
 
 	private static getImagePath(globalSettings: GlobalSettings, localSettings: SetOutputDeviceToSettings): string {
