@@ -94,11 +94,11 @@ class SonarClient {
 	}
 
 	public async getChatMixAsync(): Promise<ChatMixResponse> {
-		return this.doHttpRequestAsync<ChatMixResponse>('/ChatMix', 'GET');
+		return this.doHttpRequestAsync<ChatMixResponse>('/v1/chatMix', 'GET');
 	}
 
 	public async setChatMixAsync(balance: number): Promise<ChatMixResponse> {
-		return this.doHttpRequestAsync<ChatMixResponse>(`/ChatMix?balance=${balance}`, 'PUT');
+		return this.doHttpRequestAsync<ChatMixResponse>(`/v1/chatMix?balance=${balance}`, 'PUT');
     }
 
 	public setClassicMasterMuteAsync(isMuted: boolean): Promise<void> {
