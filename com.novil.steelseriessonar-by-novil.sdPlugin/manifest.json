@@ -160,6 +160,22 @@
 					"TitleAlignment": "middle"
 				}
 			]
+		},
+		{
+			"Name": "Set Microphone Device To",
+			"UUID": "com.novil.steelseriessonar-by-novil.set-microphone-device-to-v1",
+			"Icon": "imgs/actions/set-microphone-device-to/icon",
+			"Tooltip": "Set Microphone Device To",
+			"PropertyInspectorPath": "ui/set-microphone-device-to.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/set-microphone-device-to/key",
+					"TitleAlignment": "middle"
+				}
+			]
 		}
 	],
 	"Category": "Sonar Controller",

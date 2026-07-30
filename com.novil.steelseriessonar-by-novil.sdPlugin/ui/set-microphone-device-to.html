@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title>Set Microphone Device To</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+
+<body>
+    <!--
+        Learn more about property inspector components at https://sdpi-components.dev/docs/components
+    -->
+    <sdpi-item label="Channel Selection">
+        <sdpi-select setting="setDeviceMode" default="all-auto-detect" placeholder="Please Channel">
+            <option value="auto-select">Auto-Select</option>
+            <option value="classic-only">Classic-Only</option>
+            <option value="stream-mode-only">Stream-Mode Only</option>
+        </sdpi-select>
+    </sdpi-item>
+
+    <sdpi-item label="Set To Device">
+        <sdpi-select
+            setting="targetedDeviceId"
+            dataSource="getInputDevices"
+            loading="Fetching Devices..."
+            placeholder="Please Choose a Device"
+        />
+    </sdpi-item>
+
+    <sdpi-item label="Sonar Max Title Length">
+        <sdpi-range
+            setting="maxTitleLength"
+            default="35"
+            min="0"
+            max="100" 
+            step="1"
+            showlabels>
+        </sdpi-range>
+    </sdpi-item>
+
+    <script>
+        const openPaypalDonation = async () => {
+            const payload = { url: 'https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6' };
+            await SDPIComponents.streamDeckClient.send('openUrl', payload);
+        }
+    </script>
+    <div style="text-align: center; display: inline; font-size: smaller">
+        <p style="color: lightgray">
+            Donate to this Free Project on
+            <span style="color: lightblue; cursor: pointer; display: inline" href="https://www.paypal.com/donate/?hosted_button_id=M7YRNV44SUZV6" onclick="openPaypalDonation()">PayPal</span>
+        </p>
+    </div>
+
+</body>
+
+</html>
