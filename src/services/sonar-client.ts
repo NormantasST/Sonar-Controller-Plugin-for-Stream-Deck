@@ -174,7 +174,7 @@ class SonarClient {
             throw logErrorAndThrow(logger, `Response is undefined.`);
 
         if (!response.ok)
-            throw logErrorAndThrow(logger, `Error doing a Sonar Client Request: StatusCode: ${response.status} Body: ${JSON.stringify(response.body)}`)
+            throw logErrorAndThrow(logger, `Error doing a Sonar Client Request: StatusCode: ${response.status} Request URI: ${uri} Response Body: ${JSON.stringify(await response.text())}`)
 
         return await response.json() as TResponse;
     }
