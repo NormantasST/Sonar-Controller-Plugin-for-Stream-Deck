@@ -1,35 +1,43 @@
 import sonarClient from './services/sonar-client';
-import { DeviceRole, RedirectionEnum, StreamRedirectionEnum } from './models/types/sonar-models.type';
+import { DeviceRole, RedirectionEnum, SonarMode, StreamRedirectionEnum } from './models/types/sonar-models.type';
 import type { GlobalSettings } from './models/types/global-settings.type';
 
+const tryAsync = async <T>(promise: Promise<T>): Promise<T | undefined> => {
+    try {
+        return await promise;
+    } catch {
+        return undefined;
+    }
+};
+
 export async function getCurrentSonarSettingsAsync(): Promise<GlobalSettings> {
-    const classicRedirections = await sonarClient.getDeviceRedirectionsAsync();
-    const streamRedirections = await sonarClient.getStreamDeviceRedirectionsAsync();
+    const classicRedirections = await tryAsync(sonarClient.getDeviceRedirectionsAsync()) ?? [];
+    const streamRedirections = await tryAsync(sonarClient.getStreamDeviceRedirectionsAsync()) ?? [];
 
-    const mode = await sonarClient.getSonarModeAsync();
-    const chatMix = await sonarClient.getChatMixAsync();
+    const mode = await tryAsync(sonarClient.getSonarModeAsync());
+    const chatMix = await tryAsync(sonarClient.getChatMixAsync());
 
-    const allOutputDevices = await sonarClient.getAllOutputAudioDevicesAsync();
-    const gameDevice = allOutputDevices.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Game)?.deviceId);
-    const chatDevice = allOutputDevices.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Chat)?.deviceId);
-    const mediaDevice = allOutputDevices.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Media)?.deviceId);
-    const auxDevice = allOutputDevices.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Aux)?.deviceId);
+    const allOutputDevices = await tryAsync(sonarClient.getAllOutputAudioDevicesAsync());
+    const gameDevice = allOutputDevices?.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Game)?.deviceId);
+    const chatDevice = allOutputDevices?.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Chat)?.deviceId);
+    const mediaDevice = allOutputDevices?.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Media)?.deviceId);
+    const auxDevice = allOutputDevices?.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Aux)?.deviceId);
 
-    const personalDevice = allOutputDevices.find(x => x.id == streamRedirections.find((x) => x.streamRedirectionId == StreamRedirectionEnum.PersonalMix)?.deviceId);
-    const streamMixDevice = allOutputDevices.find(x => x.id == streamRedirections.find((x) => x.streamRedirectionId == StreamRedirectionEnum.StreamMix)?.deviceId);
+    const personalDevice = allOutputDevices?.find(x => x.id == streamRedirections.find((x) => x.streamRedirectionId == StreamRedirectionEnum.PersonalMix)?.deviceId);
+    const streamMixDevice = allOutputDevices?.find(x => x.id == streamRedirections.find((x) => x.streamRedirectionId == StreamRedirectionEnum.StreamMix)?.deviceId);
 
-    const allInputDevices = await sonarClient.getAllInputAudioDevicesAsync();
-    const classicMicDevice = allInputDevices.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Microphone)?.deviceId);
-    const streamMicDevice = allInputDevices.find(x => x.id == streamRedirections.find((x) => x.streamRedirectionId == StreamRedirectionEnum.Microphone)?.deviceId);
+    const allInputDevices = await tryAsync(sonarClient.getAllInputAudioDevicesAsync());
+    const classicMicDevice = allInputDevices?.find(x => x.id == classicRedirections.find((x) => x.id == RedirectionEnum.Microphone)?.deviceId);
+    const streamMicDevice = allInputDevices?.find(x => x.id == streamRedirections.find((x) => x.streamRedirectionId == StreamRedirectionEnum.Microphone)?.deviceId);
 
-    const classicVolumeSettings = await sonarClient.getClassicVolumeSettingsAsync();
-    const streamVolumeSettings = await sonarClient.getStreamVolumeSettingsAsync();
+    const classicVolumeSettings = await tryAsync(sonarClient.getClassicVolumeSettingsAsync());
+    const streamVolumeSettings = await tryAsync(sonarClient.getStreamVolumeSettingsAsync());
 
-    const currentConfig = await sonarClient.getCurrentConfigAsync();
+    const currentConfig = await tryAsync(sonarClient.getCurrentConfigAsync());
 
     const globalSettings: GlobalSettings = {
-        sonarMode: mode,
-        chatMixBalance: chatMix.balance ?? 0,
+        sonarMode: mode ?? SonarMode.Classic,
+        chatMixBalance: chatMix?.balance ?? 0,
         masterChannel: {
             deviceId: 'Master',
             deviceName: 'Master',
