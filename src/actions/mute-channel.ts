@@ -5,8 +5,10 @@ import { ACTION_MUTE_CHANNEL, DIAL_VOLUME_MIXER } from "../constants/action-uuid
 import type { ChannelData } from "../models/types/device-data.type";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
+import type { SonarMode } from "../models/types/sonar-models.type";
 import { DeviceRole, StreamDeviceRole } from "../models/types/sonar-models.type"
 import { wrapText } from "../helpers/plugin-helper";
+import { resolveChannelForMode } from "../helpers/channel-mode-helper";
 import type { VisibleAction } from "./base/sonar-action";
 import { SonarAction } from "./base/sonar-action";
 
@@ -29,18 +31,21 @@ export class ActionMuteChannel extends SonarAction<MuteChannelSettings> {
 	public override async onKeyDown(ev: KeyDownEvent<MuteChannelSettings>): Promise<void> {
 		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+		globalSettings.sonarMode = await sonarClient.getSonarModeAsync();
 
 		const currentChannel = ActionMuteChannel.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 		const newMuteState = !currentChannel.muted;
 
-		await ActionMuteChannel.updateMuteAsync(localSettings.targetChannel, newMuteState);
+		await ActionMuteChannel.updateMuteAsync(localSettings.targetChannel, newMuteState, globalSettings.sonarMode);
 
 		ActionMuteChannel.updateChannelGlobalSettings(globalSettings, localSettings.targetChannel, newMuteState);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
-	private static getChannelFromGlobalSettings(globalSettings: GlobalSettings, targetChannel: MuteChannels): ChannelData {
+	private static getChannelFromGlobalSettings(globalSettings: GlobalSettings, configuredChannel: MuteChannels): ChannelData {
+		// Read the state of the channel that is actually controlled in the current mode.
+		const targetChannel = resolveChannelForMode(configuredChannel, globalSettings.sonarMode);
 		switch (targetChannel) {
 			case MuteChannels.ClassicMaster:
 				return globalSettings.masterChannel;
@@ -83,7 +88,8 @@ export class ActionMuteChannel extends SonarAction<MuteChannelSettings> {
 		}
 	}
 
-	private static updateMuteAsync(targetChannel: MuteChannels, newMuteState: boolean): Promise<void> {
+	private static updateMuteAsync(configuredChannel: MuteChannels, newMuteState: boolean, sonarMode: SonarMode): Promise<void> {
+		const targetChannel = resolveChannelForMode(configuredChannel, sonarMode);
 		switch (targetChannel) {
 			case MuteChannels.ClassicMaster:
 				return sonarClient.setClassicMasterMuteAsync(newMuteState);

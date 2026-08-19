@@ -1,13 +1,16 @@
 import streamDeck from "@elgato/streamdeck";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
+import type { SonarMode } from "../models/types/sonar-models.type";
 import { DeviceRole, StreamDeviceRole } from "../models/types/sonar-models.type"
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import type { ChannelData } from "../models/types/device-data.type";
+import { resolveChannelForMode } from "../helpers/channel-mode-helper";
 
 const logger = streamDeck.logger.createScope("output-volume-mixer");
 
-export async function updateVolumeAsync(targetChannel: ChangeChannelVolumeChannels, updatedVolume: number): Promise<void> {
+export async function updateVolumeAsync(configuredChannel: ChangeChannelVolumeChannels, updatedVolume: number, sonarMode: SonarMode): Promise<void> {
+	const targetChannel = resolveChannelForMode(configuredChannel, sonarMode);
 	switch (targetChannel) {
 		case ChangeChannelVolumeChannels.ClassicMaster:
 			return sonarClient.setClassicMasterVolumeAsync(updatedVolume);
@@ -43,7 +46,9 @@ export function initializeBase(settings: BaseChangeChannelVolumeSettings) {
 	settings.changeChannelValue = settings.changeChannelValue ?? 5;
 }
 
-export function getChannelFromGlobalSettings(globalSettings: GlobalSettings, targetChannel: ChangeChannelVolumeChannels): ChannelData {
+export function getChannelFromGlobalSettings(globalSettings: GlobalSettings, configuredChannel: ChangeChannelVolumeChannels): ChannelData {
+	// Read the state of the channel that is actually controlled in the current mode.
+	const targetChannel = resolveChannelForMode(configuredChannel, globalSettings.sonarMode);
 	switch (targetChannel) {
 		case ChangeChannelVolumeChannels.ClassicMaster:
 			return globalSettings.masterChannel;

@@ -5,6 +5,7 @@ import { ACTION_VOLUME_MIXER as ACTION_OUTPUT_VOLUME_MIXER, DIAL_VOLUME_MIXER } 
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { BaseChangeChannelVolumeSettings} from "./change-channel-volume";
 import { getChannelFromGlobalSettings, initializeBase, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
+import sonarClient from "../services/sonar-client";
 import type { VisibleAction } from "./base/sonar-action";
 import { SonarAction } from "./base/sonar-action";
 
@@ -28,9 +29,10 @@ export class ActionChangeChannelVolume extends SonarAction<ActionChangeChannelVo
 	public override async onKeyDown(ev: KeyDownEvent<ActionChangeChannelVolumeSettings>): Promise<void> {
 		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+		globalSettings.sonarMode = await sonarClient.getSonarModeAsync();
 
 		const updatedVolume = ActionChangeChannelVolume.getButtonUpdatedVolume(localSettings, globalSettings);
-		await updateVolumeAsync(localSettings.targetChannel, updatedVolume);
+		await updateVolumeAsync(localSettings.targetChannel, updatedVolume, globalSettings.sonarMode);
 
 		updateAudioDeviceGlobalSettings(globalSettings, localSettings.targetChannel, updatedVolume);
 

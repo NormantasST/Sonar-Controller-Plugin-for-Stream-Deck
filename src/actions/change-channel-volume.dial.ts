@@ -6,7 +6,9 @@ import type { BaseChangeChannelVolumeSettings} from "./change-channel-volume";
 import { ChangeChannelVolumeChannels, ClassicVolumeSettingsEnumMap, getChannelFromGlobalSettings, initializeBase, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
 import sonarClient from "../services/sonar-client";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
+import type { SonarMode } from "../models/types/sonar-models.type";
 import { StreamDeviceRole } from "../models/types/sonar-models.type";
+import { resolveChannelForMode } from "../helpers/channel-mode-helper";
 import type { VisibleAction } from "./base/sonar-action";
 import { SonarAction } from "./base/sonar-action";
 
@@ -40,11 +42,12 @@ export class DialChangeChannelVolume extends SonarAction<BaseChangeChannelVolume
 
 		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+		globalSettings.sonarMode = await sonarClient.getSonarModeAsync();
 
 		const currentChanel = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 		const updatedVolume = DialChangeChannelVolume.calculateUpdatedVolume(currentChanel.volume, ev.payload.ticks, localSettings.changeChannelValue);
 
-		await updateVolumeAsync(localSettings.targetChannel, updatedVolume);
+		await updateVolumeAsync(localSettings.targetChannel, updatedVolume, globalSettings.sonarMode);
 
 		updateAudioDeviceGlobalSettings(globalSettings, localSettings.targetChannel, updatedVolume);
 
@@ -56,11 +59,12 @@ export class DialChangeChannelVolume extends SonarAction<BaseChangeChannelVolume
 
 		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+		globalSettings.sonarMode = await sonarClient.getSonarModeAsync();
 
 		const currentChanel = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 		const newMuteState = !currentChanel.muted;
 
-		await DialChangeChannelVolume.updateMuteAsync(localSettings.targetChannel, newMuteState);
+		await DialChangeChannelVolume.updateMuteAsync(localSettings.targetChannel, newMuteState, globalSettings.sonarMode);
 
 		currentChanel.muted = newMuteState;
 
@@ -90,7 +94,8 @@ export class DialChangeChannelVolume extends SonarAction<BaseChangeChannelVolume
 		return `${channelName} ${isMutedText}`.trim();
 	}
 
-	private static updateMuteAsync(targetChannel: ChangeChannelVolumeChannels, newMuteState: boolean): Promise<void> {
+	private static updateMuteAsync(configuredChannel: ChangeChannelVolumeChannels, newMuteState: boolean, sonarMode: SonarMode): Promise<void> {
+		const targetChannel = resolveChannelForMode(configuredChannel, sonarMode);
 		switch (targetChannel) {
 			case ChangeChannelVolumeChannels.ClassicMaster:
 				return sonarClient.setClassicMasterMuteAsync(newMuteState);
