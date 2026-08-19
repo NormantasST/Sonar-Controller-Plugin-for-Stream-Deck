@@ -1,6 +1,5 @@
-import type { DidReceiveSettingsEvent, KeyDownEvent, SendToPluginEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import type { KeyDownEvent, SendToPluginEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import { ACTION_SET_MICROPHONE_DEVICE_TO, ROTATE_MICROPHONE_DEVICE } from "../constants/action-uuids.constants";
 import sonarClient from "../services/sonar-client";
@@ -9,61 +8,33 @@ import { DeviceDataFlow, RedirectionEnum, SonarMode, StreamRedirectionEnum, type
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { DeviceData } from "../models/types/device-data.type";
 import { wrapText } from "../helpers/plugin-helper";
-import { RotateMicrophoneDevice } from "./rotate-microphone-device";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("set-microphone-device-to");
 
 @action({ UUID: ACTION_SET_MICROPHONE_DEVICE_TO })
-export class ActionSetMicrophoneDeviceTo extends SingletonAction<SetMicrophoneDeviceToSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings() as SetMicrophoneDeviceToSettings;
+export class ActionSetMicrophoneDeviceTo extends SonarAction<SetMicrophoneDeviceToSettings> {
+	protected override readonly relatedActionUuids = [ACTION_SET_MICROPHONE_DEVICE_TO, ROTATE_MICROPHONE_DEVICE];
 
+	protected override applyDefaultSettings(settings: SetMicrophoneDeviceToSettings, globalSettings: GlobalSettings): void {
+		settings.setDeviceMode = settings.setDeviceMode ?? SetMicrophoneDeviceModes.AutoSelect;
+		settings.targetedDeviceId = settings.targetedDeviceId ?? (globalSettings.sonarMode === SonarMode.Classic ? globalSettings.gameChannel.deviceId : globalSettings.personalMixChannel.deviceId);
+		settings.maxTitleLength = settings.maxTitleLength ?? 35;
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<SetMicrophoneDeviceToSettings>, globalSettings: GlobalSettings, localSettings: SetMicrophoneDeviceToSettings): Promise<void> {
 		await action.setTitle(await ActionSetMicrophoneDeviceTo.generateTitleAsync(localSettings));
 		await action.setImage(ActionSetMicrophoneDeviceTo.getImagePath(globalSettings, localSettings));
 	}
 
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case ACTION_SET_MICROPHONE_DEVICE_TO:
-					return ActionSetMicrophoneDeviceTo.updateThisActionAsync(action);
-				case ROTATE_MICROPHONE_DEVICE:
-					return RotateMicrophoneDevice.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	private static async initializeActionAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings();
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-
-		settings.setDeviceMode = settings.setDeviceMode ?? SetMicrophoneDeviceModes.AutoSelect;
-		settings.targetedDeviceId = settings.targetedDeviceId ?? (globalSettings.sonarMode === SonarMode.Classic ? globalSettings.gameChannel.deviceId : globalSettings.personalMixChannel.deviceId);
-		settings.maxTitleLength = settings.maxTitleLength ?? 35;
-		await action.setSettings(settings);
-
-		await ActionSetMicrophoneDeviceTo.updateThisActionAsync(action);
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<SetMicrophoneDeviceToSettings>): Promise<void> {
-		await ActionSetMicrophoneDeviceTo.initializeActionAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<SetMicrophoneDeviceToSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await ActionSetMicrophoneDeviceTo.updateThisActionAsync(ev.action);
-	}
-
 	public override async onSendToPlugin(ev: SendToPluginEvent<JsonValue, JsonObject>): Promise<void> {
-		if (ev.payload instanceof Object && "event" in ev.payload && ev.payload.event === "getInputDevices") 
+		if (ev.payload instanceof Object && "event" in ev.payload && ev.payload.event === "getInputDevices")
 			await ActionSetMicrophoneDeviceTo.updateAvailableDevicesUIAsync();
 	}
 
 	public override async onKeyDown(ev: KeyDownEvent<SetMicrophoneDeviceToSettings>): Promise<void> {
-		const localSettings = await ev.action.getSettings() as SetMicrophoneDeviceToSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		const sonarMode = await sonarClient.getSonarModeAsync();
@@ -79,7 +50,6 @@ export class ActionSetMicrophoneDeviceTo extends SingletonAction<SetMicrophoneDe
 			localSettings.setDeviceMode,
 			sonarMode)
 
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
@@ -119,10 +89,10 @@ export class ActionSetMicrophoneDeviceTo extends SingletonAction<SetMicrophoneDe
 			case SetMicrophoneDeviceModes.StreamModeOnly:
 				return await sonarClient.putStreamOutputAudioDeviceAsync(nextAudioDeviceId, StreamRedirectionEnum.Microphone);
 			case SetMicrophoneDeviceModes.AutoSelect:
-				if (sonarMode == SonarMode.Classic) 
+				if (sonarMode == SonarMode.Classic)
 					return await sonarClient.putOutputAudioDeviceAsync(nextAudioDeviceId, RedirectionEnum.Microphone);
-				
-				if (sonarMode == SonarMode.Streaming) 
+
+				if (sonarMode == SonarMode.Streaming)
 					return await sonarClient.putStreamOutputAudioDeviceAsync(nextAudioDeviceId, StreamRedirectionEnum.Microphone);
 
 				break;
@@ -165,7 +135,7 @@ export class ActionSetMicrophoneDeviceTo extends SingletonAction<SetMicrophoneDe
 }
 
 /**
- * Settings for {@link SetMicrophoneDeviceToSettings}.
+ * Settings for {@link ActionSetMicrophoneDeviceTo}.
  */
 type SetMicrophoneDeviceToSettings = {
 	setDeviceMode: SetMicrophoneDeviceModes,

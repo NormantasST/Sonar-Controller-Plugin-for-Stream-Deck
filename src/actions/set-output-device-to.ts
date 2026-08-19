@@ -1,69 +1,40 @@
-import type { DidReceiveSettingsEvent, KeyDownEvent, SendToPluginEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import type { KeyDownEvent, SendToPluginEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import { ROTATE_OUTPUT_DEVICES, ACTION_SET_OUTPUT_DEVICE_TO } from "../constants/action-uuids.constants";
 import sonarClient from "../services/sonar-client";
 import type { JsonObject, JsonValue } from "@elgato/utils";
 import { DeviceDataFlow, RedirectionEnum, SonarMode, StreamRedirectionEnum, type AudioDevice} from "../models/types/sonar-models.type";
-import { RotateOutputAudioDevice } from "./rotate-audio-output-device";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { DeviceData } from "../models/types/device-data.type";
 import { wrapText } from "../helpers/plugin-helper";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("set-output-device-to");
 
 @action({ UUID: ACTION_SET_OUTPUT_DEVICE_TO })
-export class ActionSetOutputDeviceTo extends SingletonAction<SetOutputDeviceToSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings() as SetOutputDeviceToSettings;
+export class ActionSetOutputDeviceTo extends SonarAction<SetOutputDeviceToSettings> {
+	protected override readonly relatedActionUuids = [ACTION_SET_OUTPUT_DEVICE_TO, ROTATE_OUTPUT_DEVICES];
 
+	protected override applyDefaultSettings(settings: SetOutputDeviceToSettings, globalSettings: GlobalSettings): void {
+		settings.setDeviceMode = settings.setDeviceMode ?? SetOutputDeviceModes.AllAutoDetect;
+		settings.targetedDeviceId = settings.targetedDeviceId ?? (globalSettings.sonarMode === SonarMode.Classic ? globalSettings.gameChannel.deviceId : globalSettings.personalMixChannel.deviceId);
+		settings.maxTitleLength = settings.maxTitleLength ?? 35;
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<SetOutputDeviceToSettings>, globalSettings: GlobalSettings, localSettings: SetOutputDeviceToSettings): Promise<void> {
 		await action.setTitle(await ActionSetOutputDeviceTo.generateTitleAsync(localSettings));
 		await action.setImage(ActionSetOutputDeviceTo.getImagePath(globalSettings, localSettings));
 	}
 
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case ACTION_SET_OUTPUT_DEVICE_TO:
-					return ActionSetOutputDeviceTo.updateThisActionAsync(action);
-				case ROTATE_OUTPUT_DEVICES:
-					return RotateOutputAudioDevice.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	private static async initializeActionAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings();
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-
-		settings.setDeviceMode = settings.setDeviceMode ?? SetOutputDeviceModes.AllAutoDetect;
-		settings.targetedDeviceId = settings.targetedDeviceId ?? (globalSettings.sonarMode === SonarMode.Classic ? globalSettings.gameChannel.deviceId : globalSettings.personalMixChannel.deviceId);
-		settings.maxTitleLength = settings.maxTitleLength ?? 35;
-		await action.setSettings(settings);
-
-		await ActionSetOutputDeviceTo.updateThisActionAsync(action);
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<SetOutputDeviceToSettings>): Promise<void> {
-		await ActionSetOutputDeviceTo.initializeActionAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<SetOutputDeviceToSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await ActionSetOutputDeviceTo.updateThisActionAsync(ev.action);
-	}
-
 	public override async onSendToPlugin(ev: SendToPluginEvent<JsonValue, JsonObject>): Promise<void> {
-		if (ev.payload instanceof Object && "event" in ev.payload && ev.payload.event === "getOutputDevices") 
+		if (ev.payload instanceof Object && "event" in ev.payload && ev.payload.event === "getOutputDevices")
 			await ActionSetOutputDeviceTo.updateAvailableDevicesUIAsync();
 	}
 
 	public override async onKeyDown(ev: KeyDownEvent<SetOutputDeviceToSettings>): Promise<void> {
-		const localSettings = await ev.action.getSettings() as SetOutputDeviceToSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		const sonarMode = await sonarClient.getSonarModeAsync();
@@ -79,7 +50,6 @@ export class ActionSetOutputDeviceTo extends SingletonAction<SetOutputDeviceToSe
 			localSettings.setDeviceMode,
 			sonarMode)
 
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
@@ -100,7 +70,7 @@ export class ActionSetOutputDeviceTo extends SingletonAction<SetOutputDeviceToSe
 	private static async generateTitleAsync(localSettings: SetOutputDeviceToSettings): Promise<string> {
 		const channelName = SetOutputDeviceToChannelsTranslations.get(localSettings.setDeviceMode) ?? "Unknown";
 		const deviceName = (await sonarClient.getAllAudioDevicesAsync()).find((x) => x.id == localSettings.targetedDeviceId)?.friendlyName ?? "Unknown";
-		return wrapText(`Set ${channelName}: ${deviceName}`, 11, localSettings.maxTitleLength);	
+		return wrapText(`Set ${channelName}: ${deviceName}`, 11, localSettings.maxTitleLength);
 	}
 
 	private static getImagePath(globalSettings: GlobalSettings, localSettings: SetOutputDeviceToSettings): string {

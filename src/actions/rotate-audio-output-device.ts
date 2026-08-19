@@ -1,7 +1,6 @@
-import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
+import type { KeyDownEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import { ACTION_SET_OUTPUT_DEVICE_TO, ROTATE_OUTPUT_DEVICES } from "../constants/action-uuids.constants";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import sonarClient from '.././services/sonar-client';
 import type { AudioDevice } from "../models/types/sonar-models.type";
@@ -9,38 +8,23 @@ import { RedirectionEnum, SonarMode, StreamRedirectionEnum } from "../models/typ
 import { wrapText } from "../helpers/plugin-helper";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { DeviceData } from "../models/types/device-data.type";
-import { ActionSetOutputDeviceTo } from "./set-output-device-to";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("rotate-audio-output-device");
 
 @action({ UUID: ROTATE_OUTPUT_DEVICES })
-export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any ): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings();
+export class RotateOutputAudioDevice extends SonarAction<RotateOutputSettings> {
+	protected override readonly relatedActionUuids = [ROTATE_OUTPUT_DEVICES, ACTION_SET_OUTPUT_DEVICE_TO];
 
+	protected override applyDefaultSettings(settings: RotateOutputSettings): void {
+		settings.rotationMode = settings.rotationMode ?? RotationMode.AllAutoDetect;
+		settings.maxTitleLength = settings.maxTitleLength ?? 20;
+		settings.allowExcludedDevices = settings.allowExcludedDevices ?? false;
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<RotateOutputSettings>, globalSettings: GlobalSettings, localSettings: RotateOutputSettings): Promise<void> {
 		await action.setTitle(RotateOutputAudioDevice.getTitleFromSettings(globalSettings, localSettings));
-	}
-
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case ROTATE_OUTPUT_DEVICES:
-					return RotateOutputAudioDevice.updateThisActionAsync(action);
-				case ACTION_SET_OUTPUT_DEVICE_TO:
-					return ActionSetOutputDeviceTo.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<RotateOutputSettings>): Promise<void> {
-		await RotateOutputAudioDevice.initializeActionAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<RotateOutputSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await RotateOutputAudioDevice.updateThisActionAsync(ev.action);
 	}
 
 	public override async onKeyDown(ev: KeyDownEvent<RotateOutputSettings>): Promise<void> {
@@ -66,19 +50,7 @@ export class RotateOutputAudioDevice extends SingletonAction<RotateOutputSetting
 			localSettings.rotationMode,
 			sonarMode)
 
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 		await this.notifyRelatedActionsAsync(globalSettings);
-	}
-
-	private static async initializeActionAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings();
-		settings.rotationMode = settings.rotationMode ?? RotationMode.AllAutoDetect;
-		settings.maxTitleLength = settings.maxTitleLength ?? 20;
-		settings.allowExcludedDevices = settings.allowExcludedDevices ?? false;
-		await action.setSettings(settings);
-
-		await RotateOutputAudioDevice.updateThisActionAsync(action);
 	}
 
 	private static updateSingularAudioDeviceGlobalSettings(

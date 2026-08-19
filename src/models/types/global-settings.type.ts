@@ -5,6 +5,7 @@ import type { SonarMode } from "./sonar-models.type";
 export type GlobalSettings = {
     // General
     chatMixBalance: number,
+    chatMixState: string,
     sonarMode: SonarMode,
 
     // AudioChannels & Volume Mixers for Classic

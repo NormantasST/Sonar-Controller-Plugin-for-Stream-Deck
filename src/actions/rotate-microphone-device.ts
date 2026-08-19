@@ -1,7 +1,6 @@
-import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
+import type { KeyDownEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import { ACTION_SET_MICROPHONE_DEVICE_TO, ROTATE_MICROPHONE_DEVICE } from "../constants/action-uuids.constants";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import sonarClient from "../services/sonar-client";
 import type { AudioDevice } from "../models/types/sonar-models.type";
@@ -9,42 +8,27 @@ import { RedirectionEnum, SonarMode, StreamRedirectionEnum } from "../models/typ
 import { wrapText } from "../helpers/plugin-helper";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { DeviceData } from "../models/types/device-data.type";
-import { ActionSetMicrophoneDeviceTo } from "./set-microphone-device-to";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("rotate-microphone");
 
 @action({ UUID: ROTATE_MICROPHONE_DEVICE })
-export class RotateMicrophoneDevice extends SingletonAction<RotateMicrophoneSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings() as RotateMicrophoneSettings;
+export class RotateMicrophoneDevice extends SonarAction<RotateMicrophoneSettings> {
+	protected override readonly relatedActionUuids = [ROTATE_MICROPHONE_DEVICE, ACTION_SET_MICROPHONE_DEVICE_TO];
 
+	protected override applyDefaultSettings(settings: RotateMicrophoneSettings): void {
+		settings.rotationMode = settings.rotationMode ?? RotationMode.AutoSelect;
+		settings.maxTitleLength = settings.maxTitleLength ?? 20;
+		settings.allowExcludedDevices = settings.allowExcludedDevices ?? false;
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<RotateMicrophoneSettings>, globalSettings: GlobalSettings, localSettings: RotateMicrophoneSettings): Promise<void> {
 		await action.setTitle(RotateMicrophoneDevice.getTitleFromSettings(globalSettings, localSettings));
 	}
 
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case ROTATE_MICROPHONE_DEVICE:
-					return RotateMicrophoneDevice.updateThisActionAsync(action);
-				case ACTION_SET_MICROPHONE_DEVICE_TO:
-					return ActionSetMicrophoneDeviceTo.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<RotateMicrophoneSettings>): Promise<void> {
-		await RotateMicrophoneDevice.initializeActionAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<RotateMicrophoneSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await RotateMicrophoneDevice.updateThisActionAsync(ev.action);
-	}
-
 	public override async onKeyDown(ev: KeyDownEvent<RotateMicrophoneSettings>): Promise<void> {
-		const localSettings = await ev.action.getSettings() as RotateMicrophoneSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		const sonarMode = await sonarClient.getSonarModeAsync();
@@ -66,18 +50,7 @@ export class RotateMicrophoneDevice extends SingletonAction<RotateMicrophoneSett
 			localSettings.rotationMode,
 			sonarMode);
 
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 		await this.notifyRelatedActionsAsync(globalSettings);
-	}
-
-	private static async initializeActionAsync(action: any) {
-		const settings = await action.getSettings();
-		settings.rotationMode = settings.rotationMode ?? RotationMode.AutoSelect;
-		settings.maxTitleLength = settings.maxTitleLength ?? 20;
-		settings.allowExcludedDevices = settings.allowExcludedDevices ?? false;
-		await action.setSettings(settings);
-
-		await RotateMicrophoneDevice.updateThisActionAsync(action);
 	}
 
 	private static updateAudioDeviceGlobalSettings(
@@ -119,10 +92,10 @@ export class RotateMicrophoneDevice extends SingletonAction<RotateMicrophoneSett
 			case RotationMode.StreamModeOnly:
 				return await sonarClient.putStreamOutputAudioDeviceAsync(nextAudioDeviceId, StreamRedirectionEnum.Microphone);
 			case RotationMode.AutoSelect:
-				if (sonarMode == SonarMode.Classic) 
+				if (sonarMode == SonarMode.Classic)
 					return await sonarClient.putOutputAudioDeviceAsync(nextAudioDeviceId, RedirectionEnum.Microphone);
-				
-				if (sonarMode == SonarMode.Streaming) 
+
+				if (sonarMode == SonarMode.Streaming)
 					return await sonarClient.putStreamOutputAudioDeviceAsync(nextAudioDeviceId, StreamRedirectionEnum.Microphone);
 
 				break;

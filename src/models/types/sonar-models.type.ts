@@ -120,8 +120,14 @@ export enum VolumeSettingsDeviceEnums {
 
 export type ChatMixResponse = {
     balance: number;
-    state: number;
+    state: string;
 };
+
+export enum ChatMixState {
+    // The balance is owned by a physical ChatMix wheel (e.g. on an Arctis headset);
+    // Sonar rejects software writes with 403 while in this state.
+    FiniteWheel = "finiteWheel",
+}
 
 export type ConfigResponse = {
     id: string;

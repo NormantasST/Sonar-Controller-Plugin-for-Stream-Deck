@@ -156,10 +156,10 @@ class SonarClient {
             
             const duration = Math.round(performanceEnd - performanceStart);
             logger.info(`Finished Request: ${method} ${uri} ${duration}ms`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Sonar URL is not static and can change after requests.
             // We Retry in case of URL has changed or not found.
-            if (!!error.code && error.code === "ECONNREFUSED") {
+            if (!!error && typeof error === "object" && "code" in error && error.code === "ECONNREFUSED") {
                 logger.info("Sonar Client got ECONNREFUSED. Trying to regenerate HTTP URI");
 
                 this.sonarUrl = await this.fetchSonarUrlAsync();
@@ -190,8 +190,7 @@ class SonarClient {
     private async fetchSonarUrlAsync(): Promise<string> {
         const apiResponse = await fetch('https://127.0.0.1:6327/subApps', { agent: this.getHttpsAgent() });
 
-        // TODO: Add proper Typescript type.
-        const content = await apiResponse.json() as any;
+        const content = await apiResponse.json() as SubAppsResponse;
         return content.subApps.sonar.metadata.webServerAddress;
     }
 
@@ -218,5 +217,18 @@ class SonarClient {
         return this.httpsAgent;
     }
 }
+
+/**
+ * Shape of the SteelSeries GG `/subApps` response, reduced to the fields this client reads.
+ */
+type SubAppsResponse = {
+    subApps: {
+        sonar: {
+            metadata: {
+                webServerAddress: string;
+            };
+        };
+    };
+};
 
 export default new SonarClient();

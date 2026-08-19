@@ -1,24 +1,26 @@
-import type { DialRotateEvent, DidReceiveSettingsEvent, TouchTapEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import type { DialRotateEvent, TouchTapEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import { ACTION_MUTE_CHANNEL, ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER } from "../constants/action-uuids.constants";
 import type { BaseChangeChannelVolumeSettings} from "./change-channel-volume";
 import { ChangeChannelVolumeChannels, ClassicVolumeSettingsEnumMap, getChannelFromGlobalSettings, initializeBase, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
-import { ActionChangeChannelVolume } from "./change-channel-volume.action";
-import { ActionMuteChannel } from "./mute-channel";
 import sonarClient from "../services/sonar-client";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import { StreamDeviceRole } from "../models/types/sonar-models.type";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("output-volume-mixer-dial");
 
 @action({ UUID: DIAL_VOLUME_MIXER })
-export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVolumeSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings() as BaseChangeChannelVolumeSettings;
+export class DialChangeChannelVolume extends SonarAction<BaseChangeChannelVolumeSettings> {
+	protected override readonly relatedActionUuids = [DIAL_VOLUME_MIXER, ACTION_VOLUME_MIXER, ACTION_MUTE_CHANNEL];
 
+	protected override applyDefaultSettings(settings: BaseChangeChannelVolumeSettings): void {
+		initializeBase(settings);
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<BaseChangeChannelVolumeSettings>, globalSettings: GlobalSettings, localSettings: BaseChangeChannelVolumeSettings): Promise<void> {
 		await action.setTitle(DialChangeChannelVolume.generateTitle(globalSettings, localSettings));
 
 		if (action.isDial()){
@@ -33,42 +35,10 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 		}
 	}
 
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case DIAL_VOLUME_MIXER:
-					return DialChangeChannelVolume.updateThisActionAsync(action);
-				case ACTION_VOLUME_MIXER:
-					return ActionChangeChannelVolume.updateThisActionAsync(action);
-				case ACTION_MUTE_CHANNEL:
-					return ActionMuteChannel.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	private static async initializeAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings();
-		initializeBase(settings);
-		await action.setSettings(settings);
-
-		await DialChangeChannelVolume.updateThisActionAsync(action);
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<BaseChangeChannelVolumeSettings>): Promise<void> {
-		await DialChangeChannelVolume.initializeAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<BaseChangeChannelVolumeSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await DialChangeChannelVolume.updateThisActionAsync(ev.action);
-	}
-
 	public override async onDialRotate(ev: DialRotateEvent<BaseChangeChannelVolumeSettings>): Promise<void> {
 		logger.info(`Dial Rotate with settings: ${JSON.stringify(ev)}`);
 
-		const localSettings = await ev.action.getSettings() as BaseChangeChannelVolumeSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		const currentChanel = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
@@ -77,15 +47,14 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 		await updateVolumeAsync(localSettings.targetChannel, updatedVolume);
 
 		updateAudioDeviceGlobalSettings(globalSettings, localSettings.targetChannel, updatedVolume);
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
-	public override async onTouchTap(ev: TouchTapEvent): Promise<void> {
+	public override async onTouchTap(ev: TouchTapEvent<BaseChangeChannelVolumeSettings>): Promise<void> {
 		logger.info(`Dial Touch with settings: ${JSON.stringify(ev)}`);
 
-		const localSettings = await ev.action.getSettings() as BaseChangeChannelVolumeSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		const currentChanel = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
@@ -94,7 +63,6 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 		await DialChangeChannelVolume.updateMuteAsync(localSettings.targetChannel, newMuteState);
 
 		currentChanel.muted = newMuteState;
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
@@ -106,16 +74,16 @@ export class DialChangeChannelVolume extends SingletonAction<BaseChangeChannelVo
 	private static getIcon(globalSettings: GlobalSettings, localSettings: BaseChangeChannelVolumeSettings) {
 		const channelData = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 		const basePath = `imgs/actions/change-channel-volume/`;
-		
-		if (channelData.muted) 
+
+		if (channelData.muted)
 			return `${basePath}icon-muted`;
-		
+
 		return `${basePath}icon`;
 	}
 
-	private static generateTitle(globalSettings: GlobalSettings, localSettings: BaseChangeChannelVolumeSettings): any {
+	private static generateTitle(globalSettings: GlobalSettings, localSettings: BaseChangeChannelVolumeSettings): string {
 		const channelName = VolumeChannelTranslations.get(localSettings.targetChannel) ?? localSettings.targetChannel;
-		
+
 		const channelData = getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 		const isMutedText = channelData.muted ? " (M)" : "";
 

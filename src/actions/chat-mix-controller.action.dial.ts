@@ -1,20 +1,25 @@
-import type { DialRotateEvent, DidReceiveSettingsEvent, TouchTapEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import type { DialRotateEvent, TouchTapEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import { initializeBase, type BaseChatMixControllerSettings } from "./chat-mix-controller";
 import { ACTION_CHAT_MIX_CONTROLLER, DIAL_CHAT_MIX_CONTROLLER } from "../constants/action-uuids.constants";
-import { ActionChatMixController } from "./chat-mix-controller.action";
 import sonarClient from "../services/sonar-client";
+import { ChatMixState } from "../models/types/sonar-models.type";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("chat-mix-controller-dial");
 
 @action({ UUID: DIAL_CHAT_MIX_CONTROLLER })
-export class DialChatMixController extends SingletonAction<BaseChatMixControllerSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+export class DialChatMixController extends SonarAction<BaseChatMixControllerSettings> {
+	protected override readonly relatedActionUuids = [DIAL_CHAT_MIX_CONTROLLER, ACTION_CHAT_MIX_CONTROLLER];
 
-		await action.setTitle(DialChatMixController.generateTitle());
+	protected override applyDefaultSettings(settings: BaseChatMixControllerSettings): void {
+		initializeBase(settings);
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<BaseChatMixControllerSettings>, globalSettings: GlobalSettings, _localSettings: BaseChatMixControllerSettings): Promise<void> {
+		await action.setTitle(DialChatMixController.generateTitle(globalSettings));
 		if (action.isDial()){
 			const currentMixValue = globalSettings.chatMixBalance ?? 0;
 			await action.setFeedback({
@@ -25,62 +30,49 @@ export class DialChatMixController extends SingletonAction<BaseChatMixController
 		}
 	}
 
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case DIAL_CHAT_MIX_CONTROLLER:
-					return DialChatMixController.updateThisActionAsync(action);
-				case ACTION_CHAT_MIX_CONTROLLER:
-					return ActionChatMixController.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	private static async initializeAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings() as BaseChatMixControllerSettings;
-		initializeBase(settings);
-		
-		await action.setSettings(settings);
-		await DialChatMixController.updateThisActionAsync(action);
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<BaseChatMixControllerSettings>): Promise<void> {
-		await DialChatMixController.initializeAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<BaseChatMixControllerSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await DialChatMixController.updateThisActionAsync(ev.action);
-	}
-
 	public override async onDialRotate(ev: DialRotateEvent<BaseChatMixControllerSettings>): Promise<void> {
 		logger.info(`Dial Rotate with settings: ${JSON.stringify(ev)}`);
 
-		const localSettings = await ev.action.getSettings() as BaseChatMixControllerSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
-		const currentBalance = globalSettings.chatMixBalance;
-		const updateBalance = DialChatMixController.calculateUpdatedVolume(currentBalance, ev.payload.ticks, localSettings.changeValue);
+		const chatMix = await sonarClient.getChatMixAsync();
+		globalSettings.chatMixBalance = chatMix.balance;
+		globalSettings.chatMixState = chatMix.state;
+
+		if (chatMix.state === ChatMixState.FiniteWheel) {
+			logger.info("ChatMix balance is owned by a hardware wheel; ignoring dial rotation.");
+			await this.notifyRelatedActionsAsync(globalSettings);
+			return;
+		}
+
+		const updateBalance = DialChatMixController.calculateUpdatedVolume(chatMix.balance, ev.payload.ticks, localSettings.changeValue);
 		await sonarClient.setChatMixAsync(updateBalance);
 
 		globalSettings.chatMixBalance = updateBalance;
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
 
-	public override async onTouchTap(ev: TouchTapEvent): Promise<void> {
+	public override async onTouchTap(ev: TouchTapEvent<BaseChatMixControllerSettings>): Promise<void> {
 		logger.info(`Dial Touch with settings: ${JSON.stringify(ev)}`);
 
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+
+		const chatMix = await sonarClient.getChatMixAsync();
+		globalSettings.chatMixBalance = chatMix.balance;
+		globalSettings.chatMixState = chatMix.state;
+
+		if (chatMix.state === ChatMixState.FiniteWheel) {
+			logger.info("ChatMix balance is owned by a hardware wheel; ignoring touch tap.");
+			await this.notifyRelatedActionsAsync(globalSettings);
+			return;
+		}
 
 		const updateBalance = 0;
 		await sonarClient.setChatMixAsync(updateBalance);
 
 		globalSettings.chatMixBalance = updateBalance;
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
@@ -94,7 +86,10 @@ export class DialChatMixController extends SingletonAction<BaseChatMixController
 		return normalizedValue * 100; // Convert to percentage
 	}
 
-	private static generateTitle(): string {
-		return "ChatMix";	
+	private static generateTitle(globalSettings: GlobalSettings): string {
+		if (globalSettings.chatMixState === ChatMixState.FiniteWheel)
+			return "ChatMix\r\n(HW)";
+
+		return "ChatMix";
 	}
 }

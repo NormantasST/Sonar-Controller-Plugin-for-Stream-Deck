@@ -3,7 +3,7 @@ import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
 import { DeviceRole, StreamDeviceRole } from "../models/types/sonar-models.type"
 import type { GlobalSettings } from "../models/types/global-settings.type";
-import type { DeviceData } from "../models/types/device-data.type";
+import type { ChannelData } from "../models/types/device-data.type";
 
 const logger = streamDeck.logger.createScope("output-volume-mixer");
 
@@ -43,7 +43,7 @@ export function initializeBase(settings: BaseChangeChannelVolumeSettings) {
 	settings.changeChannelValue = settings.changeChannelValue ?? 5;
 }
 
-export function getChannelFromGlobalSettings(globalSettings: GlobalSettings, targetChannel: ChangeChannelVolumeChannels): DeviceData {
+export function getChannelFromGlobalSettings(globalSettings: GlobalSettings, targetChannel: ChangeChannelVolumeChannels): ChannelData {
 	switch (targetChannel) {
 		case ChangeChannelVolumeChannels.ClassicMaster:
 			return globalSettings.masterChannel;

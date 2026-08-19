@@ -34,8 +34,8 @@ export default tseslint.config(
             // Disallow awaiting non-Promise values
             '@typescript-eslint/await-thenable': 'error',
 
-            // allow any objects
-            "@typescript-eslint/no-explicit-any": "off",
+            // Disallow explicit 'any'; use precise types or 'unknown' with narrowing instead
+            "@typescript-eslint/no-explicit-any": "error",
 
             // Force curly braces for multi-line blocks, but allow single-line if statements without them
             'curly': ['error', 'multi'],

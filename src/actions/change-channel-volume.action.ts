@@ -1,66 +1,38 @@
-import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import type { KeyDownEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import { ACTION_VOLUME_MIXER as ACTION_OUTPUT_VOLUME_MIXER, DIAL_VOLUME_MIXER } from "../constants/action-uuids.constants";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import type { BaseChangeChannelVolumeSettings} from "./change-channel-volume";
 import { getChannelFromGlobalSettings, initializeBase, updateAudioDeviceGlobalSettings, updateVolumeAsync, VolumeChannelTranslations } from "./change-channel-volume";
-import { DialChangeChannelVolume } from "./change-channel-volume.dial";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("output-volume-mixer-action");
 
 @action({ UUID: ACTION_OUTPUT_VOLUME_MIXER })
-export class ActionChangeChannelVolume extends SingletonAction<ActionChangeChannelVolumeSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings() as ActionChangeChannelVolumeSettings;
+export class ActionChangeChannelVolume extends SonarAction<ActionChangeChannelVolumeSettings> {
+	protected override readonly relatedActionUuids = [ACTION_OUTPUT_VOLUME_MIXER, DIAL_VOLUME_MIXER];
 
+	protected override applyDefaultSettings(settings: ActionChangeChannelVolumeSettings): void {
+		initializeBase(settings);
+		settings.mode = settings.mode ?? ChangeChannelVolumeModes.IncreaseVolume;
+		settings.showTextComponents = settings.showTextComponents ?? ["mode", "channel", "output"];
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<ActionChangeChannelVolumeSettings>, globalSettings: GlobalSettings, localSettings: ActionChangeChannelVolumeSettings): Promise<void> {
 		await action.setTitle(ActionChangeChannelVolume.generateTitle(globalSettings, localSettings));
 		await action.setImage(ActionChangeChannelVolume.getImagePath(globalSettings, localSettings));
 	}
 
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case ACTION_OUTPUT_VOLUME_MIXER:
-					return ActionChangeChannelVolume.updateThisActionAsync(action);
-				case DIAL_VOLUME_MIXER:
-					return DialChangeChannelVolume.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	private static async initializeAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings();
-		initializeBase(settings);
-		settings.mode = settings.mode ?? ChangeChannelVolumeModes.IncreaseVolume;
-		settings.showTextComponents = settings.showTextComponents ?? ["mode", "channel", "output"];
-		await action.setSettings(settings);
-
-		await ActionChangeChannelVolume.updateThisActionAsync(action);
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<ActionChangeChannelVolumeSettings>): Promise<void> {
-		await ActionChangeChannelVolume.initializeAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<ActionChangeChannelVolumeSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await ActionChangeChannelVolume.updateThisActionAsync(ev.action);
-	}
-
 	public override async onKeyDown(ev: KeyDownEvent<ActionChangeChannelVolumeSettings>): Promise<void> {
-		const localSettings = await ev.action.getSettings() as ActionChangeChannelVolumeSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		const updatedVolume = ActionChangeChannelVolume.getButtonUpdatedVolume(localSettings, globalSettings);
 		await updateVolumeAsync(localSettings.targetChannel, updatedVolume);
 
 		updateAudioDeviceGlobalSettings(globalSettings, localSettings.targetChannel, updatedVolume);
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}

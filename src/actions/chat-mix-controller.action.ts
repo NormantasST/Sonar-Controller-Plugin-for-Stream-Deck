@@ -1,64 +1,50 @@
-import type { DidReceiveSettingsEvent, KeyDownEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import type { KeyDownEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import { ACTION_CHAT_MIX_CONTROLLER } from "../constants/action-uuids.constants";
 import { logErrorAndThrow } from "../helpers/streamdeck-logger-helper";
 import sonarClient from "../services/sonar-client";
+import { ChatMixState } from "../models/types/sonar-models.type";
 import type { BaseChatMixControllerSettings } from "./chat-mix-controller";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("chat-mix-controller");
 
 @action({ UUID: ACTION_CHAT_MIX_CONTROLLER })
-export class ActionChatMixController extends SingletonAction<ActionChatMixControllerSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings() as ActionChatMixControllerSettings;
+export class ActionChatMixController extends SonarAction<ActionChatMixControllerSettings> {
+	protected override readonly relatedActionUuids = [ACTION_CHAT_MIX_CONTROLLER];
 
-		await action.setTitle(ActionChatMixController.generateTitle(globalSettings, localSettings));
-		await action.setImage(ActionChatMixController.getImagePath(globalSettings, localSettings));
-	}
-
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case ACTION_CHAT_MIX_CONTROLLER:
-					return ActionChatMixController.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	private static async initializeActionAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings();
+	protected override applyDefaultSettings(settings: ActionChatMixControllerSettings): void {
 		settings.channel = settings.channel ?? ChatMixControllerChannels.Chat;
 		settings.mode = settings.mode ?? ChatMixControllerModes.Increase;
 		settings.changeValue = settings.changeValue ?? 0.05;
 		settings.showTextComponents = settings.showTextComponents ?? ["change", "channel", "status"];
-		await action.setSettings(settings);
-
-		await ActionChatMixController.updateThisActionAsync(action);
 	}
 
-	public override async onWillAppear(ev: WillAppearEvent<ActionChatMixControllerSettings>): Promise<void> {
-		await ActionChatMixController.initializeActionAsync(ev.action);
-	}
-
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<ActionChatMixControllerSettings> | any): Promise<void> {
-		if (ev.id === undefined)
-			await ActionChatMixController.updateThisActionAsync(ev.action);
+	protected override async refreshActionAsync(action: VisibleAction<ActionChatMixControllerSettings>, globalSettings: GlobalSettings, localSettings: ActionChatMixControllerSettings): Promise<void> {
+		await action.setTitle(ActionChatMixController.generateTitle(globalSettings, localSettings));
+		await action.setImage(ActionChatMixController.getImagePath(globalSettings, localSettings));
 	}
 
 	public override async onKeyDown(ev: KeyDownEvent<ActionChatMixControllerSettings>): Promise<void> {
-		const localSettings = await ev.action.getSettings() as ActionChatMixControllerSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+
+		const chatMix = await sonarClient.getChatMixAsync();
+		globalSettings.chatMixBalance = chatMix.balance;
+		globalSettings.chatMixState = chatMix.state;
+
+		if (chatMix.state === ChatMixState.FiniteWheel) {
+			logger.info("ChatMix balance is owned by a hardware wheel; ignoring key press.");
+			await this.notifyRelatedActionsAsync(globalSettings);
+			return;
+		}
 
 		const updateBalance = ActionChatMixController.getUpdatedChatMixBalance(localSettings, globalSettings);
 		await sonarClient.setChatMixAsync(updateBalance);
 
 		globalSettings.chatMixBalance = updateBalance;
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		await this.notifyRelatedActionsAsync(globalSettings);
 	}
@@ -101,11 +87,16 @@ export class ActionChatMixController extends SingletonAction<ActionChatMixContro
 		const showChannel = localSettings.showTextComponents.includes("channel");
 		const showStatus = localSettings.showTextComponents.includes("status");
 
+		// The balance is read-only while a hardware ChatMix wheel owns it.
+		const statusText = globalSettings.chatMixState === ChatMixState.FiniteWheel
+			? "(HW)"
+			: `(${sign}${Math.abs(currentBalancePercentage)}%)`;
+
 		if (localSettings.mode == ChatMixControllerModes.Increase)
 			return (""
 				+ (showChange ? `+${changeValuePercentage}%\r\n` : "")
 				+ (showChannel ? `${ChatMixTranslations.get(localSettings.channel)}\r\n` : "")
-				+ (showStatus ? `(${sign}${Math.abs(currentBalancePercentage)}%)` : "")).trim()
+				+ (showStatus ? statusText : "")).trim()
 
 		if (localSettings.mode == ChatMixControllerModes.SetVolume)
 			return (""
@@ -128,7 +119,7 @@ export class ActionChatMixController extends SingletonAction<ActionChatMixContro
 
 		const chatMixBalance = globalSettings.chatMixBalance ?? 0;
 		logger.info(`ChatMix Balance: ${chatMixBalance} mode: ${localSettings.mode} channel: ${localSettings.channel}`);
-		if (localSettings.mode === ChatMixControllerModes.Increase) 
+		if (localSettings.mode === ChatMixControllerModes.Increase)
 			switch (localSettings.channel) {
 				case ChatMixControllerChannels.Game:
 					if (chatMixBalance > 0)
@@ -145,7 +136,7 @@ export class ActionChatMixController extends SingletonAction<ActionChatMixContro
 
 					if (chatMixBalance == -1)
 						return basePath + "key-game-100";
-					break;	
+					break;
 				case ChatMixControllerChannels.Chat:
 					if (chatMixBalance < 0)
 						return basePath + "key-chat-negative";
@@ -161,9 +152,9 @@ export class ActionChatMixController extends SingletonAction<ActionChatMixContro
 
 					if (chatMixBalance == 1)
 						return basePath + "key-chat-100";
-					break;	
+					break;
 			}
-		
+
 		throw logErrorAndThrow(logger, `Unknown mode for generating image path: ${localSettings.mode} channel: ${localSettings.channel} balance: ${chatMixBalance}`);
 	}
 }

@@ -1,6 +1,5 @@
-import type { DidReceiveSettingsEvent, KeyDownEvent, SendToPluginEvent, WillAppearEvent } from "@elgato/streamdeck";
-import streamDeck, { action, SingletonAction } from "@elgato/streamdeck";
-import type { INotifyableAction } from "../models/interfaces/notifyable-users.interface";
+import type { DidReceiveSettingsEvent, KeyDownEvent, SendToPluginEvent } from "@elgato/streamdeck";
+import streamDeck, { action } from "@elgato/streamdeck";
 import type { GlobalSettings } from "../models/types/global-settings.type";
 import { ACTION_SET_CHANNEL_PROFILE_TO } from "../constants/action-uuids.constants";
 import type { ExpandedDeviceData } from "../models/types/device-data.type";
@@ -9,49 +8,29 @@ import type { JsonObject, JsonValue } from "@elgato/utils";
 import type { ConfigResponse} from "../models/types/sonar-models.type";
 import { DeviceRole } from "../models/types/sonar-models.type";
 import { wrapText } from "../helpers/plugin-helper";
+import type { VisibleAction } from "./base/sonar-action";
+import { SonarAction } from "./base/sonar-action";
 
 const logger = streamDeck.logger.createScope("set-profile-to");
 
 @action({ UUID: ACTION_SET_CHANNEL_PROFILE_TO })
-export class ActionSetChannelProfileTo extends SingletonAction<SetProfileToSettings> implements INotifyableAction {
-	public static async updateThisActionAsync(action: any): Promise<void> {
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-		const localSettings = await action.getSettings() as SetProfileToSettings;
+export class ActionSetChannelProfileTo extends SonarAction<SetProfileToSettings> {
+	protected override readonly relatedActionUuids = [ACTION_SET_CHANNEL_PROFILE_TO];
 
+	protected override applyDefaultSettings(settings: SetProfileToSettings, globalSettings: GlobalSettings): void {
+		settings.targetChannel = settings.targetChannel ?? SetProfileToChannels.Game;
+		settings.targetProfileId = settings.targetProfileId ?? ActionSetChannelProfileTo.getCurrentChannelProfile(globalSettings, settings.targetChannel);
+	}
+
+	protected override async refreshActionAsync(action: VisibleAction<SetProfileToSettings>, globalSettings: GlobalSettings, localSettings: SetProfileToSettings): Promise<void> {
 		await action.setTitle(await ActionSetChannelProfileTo.generateTitleAsync(localSettings));
 		await action.setImage(ActionSetChannelProfileTo.getImagePath(globalSettings, localSettings));
 	}
 
-	public async notifyRelatedActionsAsync(globalSettings: GlobalSettings): Promise<void> {
-		await streamDeck.settings.setGlobalSettings(globalSettings);
-		await Promise.all(streamDeck.actions.map(async (action) => {
-			switch (action.manifestId) {
-				case ACTION_SET_CHANNEL_PROFILE_TO:
-					return ActionSetChannelProfileTo.updateThisActionAsync(action);
-			}
-		}));
-	}
-
-	private static async initializeActionAsync(action: any) {
-		// Auto Initialize Settings. Because Streamdeck does not.
-		const settings = await action.getSettings();
-		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
-
-		settings.targetChannel = settings.targetChannel ?? SetProfileToChannels.Game;
-		settings.targetProfileId = settings.targetProfileId ?? ActionSetChannelProfileTo.getCurrentChannelProfile(globalSettings, settings.targetChannel);
-		await action.setSettings(settings);
-
-		await ActionSetChannelProfileTo.updateThisActionAsync(action);
-	}
-
-	public override async onWillAppear(ev: WillAppearEvent<SetProfileToSettings>): Promise<void> {
-		await ActionSetChannelProfileTo.initializeActionAsync(ev.action);
-	}
-
 	public previousChannel: SetProfileToChannels | undefined = undefined;
-	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<SetProfileToSettings> | any): Promise<void> {
+	public override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<SetProfileToSettings>): Promise<void> {
 		logger.info("Called: onDidReceiveSettings");
-		const localSettings = await ev.action.getSettings() as SetProfileToSettings;
+		const localSettings = ev.payload.settings;
 
 		// Selected Channel has Changed. Update available profiles.
 		if (this.previousChannel !== localSettings.targetChannel) {
@@ -67,28 +46,25 @@ export class ActionSetChannelProfileTo extends SingletonAction<SetProfileToSetti
 			}
 		}
 
-		if (ev.id === undefined)
-			await ActionSetChannelProfileTo.updateThisActionAsync(ev.action);
+		await super.onDidReceiveSettings(ev);
 
 		this.previousChannel = localSettings.targetChannel;
 	}
 
 	public override async onSendToPlugin(ev: SendToPluginEvent<JsonValue, JsonObject>): Promise<void> {
-		const localSettings = await ev.action.getSettings() as SetProfileToSettings;
+		const localSettings = await ev.action.getSettings<SetProfileToSettings>();
 
-		if (ev.payload instanceof Object && "event" in ev.payload && ev.payload.event === "getProfiles") 
+		if (ev.payload instanceof Object && "event" in ev.payload && ev.payload.event === "getProfiles")
 			await ActionSetChannelProfileTo.updateAvailableProfilesUIAsync(localSettings.targetChannel);
-
 	}
 
 	public override async onKeyDown(ev: KeyDownEvent<SetProfileToSettings>): Promise<void> {
-		const localSettings = await ev.action.getSettings() as SetProfileToSettings;
+		const localSettings = await ev.action.getSettings();
 		const globalSettings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 
 		// Set Current Channel Profile to Target Profile
 		const targetChannel = ActionSetChannelProfileTo.getChannelFromGlobalSettings(globalSettings, localSettings.targetChannel);
 		targetChannel.profileId = localSettings.targetProfileId;
-		await streamDeck.settings.setGlobalSettings(globalSettings);
 
 		// Update Profile on Sonar
 		await Promise.all([
@@ -174,7 +150,7 @@ export const ProfileChannelTranslations = new Map<SetProfileToChannels, DeviceRo
 ]);
 
 /**
- * Settings for {@link SetProfileToSettings}.
+ * Settings for {@link ActionSetChannelProfileTo}.
  */
 type SetProfileToSettings = {
 	targetChannel: SetProfileToChannels,

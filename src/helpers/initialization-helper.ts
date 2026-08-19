@@ -1,16 +1,9 @@
 import streamDeck from "@elgato/streamdeck";
-import { RotateMicrophoneDevice } from "../actions/rotate-microphone-device";
-import { RotateOutputAudioDevice } from "../actions/rotate-audio-output-device";
-import { ACTION_CHAT_MIX_CONTROLLER, ACTION_MUTE_CHANNEL, ROTATE_MICROPHONE_DEVICE, ROTATE_OUTPUT_DEVICES, ACTION_VOLUME_MIXER, DIAL_VOLUME_MIXER, DIAL_CHAT_MIX_CONTROLLER, ACTION_SET_CHANNEL_PROFILE_TO, ACTION_SET_OUTPUT_DEVICE_TO, ACTION_SET_MICROPHONE_DEVICE_TO } from "../constants/action-uuids.constants";
 import { getCurrentSonarSettingsAsync } from "../sonar-helper";
-import { ActionMuteChannel } from "../actions/mute-channel";
-import { DialChangeChannelVolume } from "../actions/change-channel-volume.dial";
-import { ActionChangeChannelVolume } from "../actions/change-channel-volume.action";
-import { DialChatMixController } from "../actions/chat-mix-controller.action.dial";
-import { ActionChatMixController } from "../actions/chat-mix-controller.action";
-import { ActionSetChannelProfileTo } from "../actions/set-channel-profile-to";
-import { ActionSetOutputDeviceTo } from "../actions/set-output-device-to";
-import { ActionSetMicrophoneDeviceTo } from "../actions/set-microphone-device-to";
+import { getAllRefreshableActions } from "../actions/base/action-registry";
+import type { GlobalSettings } from "../models/types/global-settings.type";
+
+const logger = streamDeck.logger.createScope("initialization-helper");
 
 export async function initializeGlobalSettingsAsync() {
     const globalSettings = await getCurrentSonarSettingsAsync();
@@ -19,37 +12,21 @@ export async function initializeGlobalSettingsAsync() {
     streamDeck.settings.setGlobalSettings(globalSettings);
 
     setInterval(async () => {
-        const globalSettings = await getCurrentSonarSettingsAsync();
-        // Functions weird during Streamdeck setup. Stops working.
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        streamDeck.settings.setGlobalSettings(globalSettings);
-        await notifyAllAsync();
+        // A throw here would be an unhandled rejection and kill the plugin process,
+        // e.g. when SteelSeries GG is restarting; log and retry on the next tick instead.
+        try {
+            const globalSettings = await getCurrentSonarSettingsAsync();
+            // Functions weird during Streamdeck setup. Stops working.
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            streamDeck.settings.setGlobalSettings(globalSettings);
+            await notifyAllAsync(globalSettings);
+        } catch (error) {
+            const details = error instanceof Error ? error.stack ?? error.message : JSON.stringify(error);
+            logger.error(`Periodic Sonar settings refresh failed: ${details}`);
+        }
     }, 60000);
 }
 
-export async function notifyAllAsync() {
-    await Promise.all(streamDeck.actions.map(async (action) => {
-        switch (action.manifestId) {
-            case ROTATE_OUTPUT_DEVICES:
-                return RotateOutputAudioDevice.updateThisActionAsync(action);
-            case ROTATE_MICROPHONE_DEVICE:
-                return RotateMicrophoneDevice.updateThisActionAsync(action);
-            case ACTION_VOLUME_MIXER:
-                return ActionChangeChannelVolume.updateThisActionAsync(action);
-            case DIAL_VOLUME_MIXER:
-                return DialChangeChannelVolume.updateThisActionAsync(action);
-            case ACTION_CHAT_MIX_CONTROLLER:
-                return ActionChatMixController.updateThisActionAsync(action);
-            case DIAL_CHAT_MIX_CONTROLLER:
-                return DialChatMixController.updateThisActionAsync(action);
-            case ACTION_MUTE_CHANNEL:
-                return ActionMuteChannel.updateThisActionAsync(action);
-            case ACTION_SET_CHANNEL_PROFILE_TO:
-                return ActionSetChannelProfileTo.updateThisActionAsync(action);
-            case ACTION_SET_OUTPUT_DEVICE_TO:
-                return ActionSetOutputDeviceTo.updateThisActionAsync(action);
-            case ACTION_SET_MICROPHONE_DEVICE_TO:
-                return ActionSetMicrophoneDeviceTo.updateThisActionAsync(action);
-        }
-    }));
+export async function notifyAllAsync(globalSettings: GlobalSettings) {
+    await Promise.all(getAllRefreshableActions().map((action) => action.refreshAllAsync(globalSettings)));
 }
