@@ -37,6 +37,7 @@ export class ActionChatMixController extends SonarAction<ActionChatMixController
 
 		if (chatMix.state === ChatMixState.FiniteWheel) {
 			logger.info("ChatMix balance is owned by a hardware wheel; ignoring key press.");
+			await ev.action.showAlert();
 			await this.notifyRelatedActionsAsync(globalSettings);
 			return;
 		}
@@ -77,6 +78,10 @@ export class ActionChatMixController extends SonarAction<ActionChatMixController
 	}
 
 	private static generateTitle(globalSettings: GlobalSettings, localSettings: ActionChatMixControllerSettings): string {
+		// The balance is read-only while a hardware ChatMix wheel owns it.
+		if (globalSettings.chatMixState === ChatMixState.FiniteWheel)
+			return "ChatMix\r\nBlocked\r\n(HW)";
+
 		const changeValuePercentage = Math.round(localSettings.changeValue * 100);
 		const currentBalancePercentage = Math.round(globalSettings.chatMixBalance * 100) ?? 0;
 
@@ -87,10 +92,7 @@ export class ActionChatMixController extends SonarAction<ActionChatMixController
 		const showChannel = localSettings.showTextComponents.includes("channel");
 		const showStatus = localSettings.showTextComponents.includes("status");
 
-		// The balance is read-only while a hardware ChatMix wheel owns it.
-		const statusText = globalSettings.chatMixState === ChatMixState.FiniteWheel
-			? "(HW)"
-			: `(${sign}${Math.abs(currentBalancePercentage)}%)`;
+		const statusText = `(${sign}${Math.abs(currentBalancePercentage)}%)`;
 
 		if (localSettings.mode == ChatMixControllerModes.Increase)
 			return (""

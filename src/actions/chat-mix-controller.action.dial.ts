@@ -42,6 +42,7 @@ export class DialChatMixController extends SonarAction<BaseChatMixControllerSett
 
 		if (chatMix.state === ChatMixState.FiniteWheel) {
 			logger.info("ChatMix balance is owned by a hardware wheel; ignoring dial rotation.");
+			await ev.action.showAlert();
 			await this.notifyRelatedActionsAsync(globalSettings);
 			return;
 		}
@@ -65,6 +66,7 @@ export class DialChatMixController extends SonarAction<BaseChatMixControllerSett
 
 		if (chatMix.state === ChatMixState.FiniteWheel) {
 			logger.info("ChatMix balance is owned by a hardware wheel; ignoring touch tap.");
+			await ev.action.showAlert();
 			await this.notifyRelatedActionsAsync(globalSettings);
 			return;
 		}
@@ -88,7 +90,7 @@ export class DialChatMixController extends SonarAction<BaseChatMixControllerSett
 
 	private static generateTitle(globalSettings: GlobalSettings): string {
 		if (globalSettings.chatMixState === ChatMixState.FiniteWheel)
-			return "ChatMix\r\n(HW)";
+			return "ChatMix\r\nBlocked (HW)";
 
 		return "ChatMix";
 	}
